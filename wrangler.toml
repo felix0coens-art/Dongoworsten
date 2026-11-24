@@ -18,5 +18,5 @@ bucket_name = "dongoworsten-fotos"
 # Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die /beheer beschermt.
 ACCESS_TEAM_DOMAIN = ""
 ACCESS_AUD = ""
-# Wie mag het beheer gebruiken (komma-gescheiden e-mailadressen).
-BEHEER_EMAILS = ""
+# BEHEER_EMAILS (wie mag het beheer gebruiken, komma-gescheiden) staat als geheim
+# in Cloudflare (Instellingen > Variabelen en geheimen), niet in de code.
