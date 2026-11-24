@@ -339,7 +339,7 @@ async function toonInstelling(sleutel) {
           ${veld('hero_titel', 'Grote titel', tekstInvoer('hero_titel', w.hero_titel, 'maxlength="120"'), 'Zet een woord tussen *sterretjes* om het in de opvallende stijl te tonen.')}
           ${veld('hero_tekst', 'Tekst eronder', tekstVak('hero_tekst', w.hero_tekst, 'maxlength="600"'))}
           ${veld('verhaal_titel', 'Titel van het verhaal', tekstInvoer('verhaal_titel', w.verhaal_titel, 'maxlength="120"'))}
-          ${veld('verhaal_tekst', 'Het verhaal', tekstVak('verhaal_tekst', w.verhaal_tekst, 'maxlength="4000"'), 'Laat een lege regel tussen alinea\'s.')}
+          ${veld('verhaal_tekst', 'Het verhaal', tekstVak('verhaal_tekst', w.verhaal_tekst, 'maxlength="4000"'), 'Laat een lege regel tussen blokken. Een blok dat begint met <code>## Titel</code> wordt een stap in de tijdlijn; een blok tussen aanhalingstekens wordt het grote citaat.')}
         </fieldset>
         <fieldset><legend>Juridisch</legend>
           ${veld('voorwaarden', 'Algemene voorwaarden', tekstVak('voorwaarden', w.voorwaarden, 'class="groot"'), 'Regels die beginnen met # worden een tussentitel.')}
@@ -393,10 +393,61 @@ async function toonBestellingen(status = 'betaald') {
     <div class="filters">${Object.entries(STATUS_NAAM).map(([k, n]) => `<button type="button" data-status="${k}" aria-pressed="${k === status}">${n}</button>`).join('')}</div>
     ${bestellingen.length ? `<div class="tabel"><table>
       <thead><tr><th>Nummer</th><th>Datum</th><th>Klant</th><th>Levering</th><th>Status</th><th class="getal">Totaal</th></tr></thead>
-      <tbody>${bestellingen.map((b) => `<tr><td>${esc(b.nummer)}</td><td>${esc(b.aangemaakt.slice(0, 16))}</td><td>${esc(b.naam)}</td><td>${b.levering === 'afhalen' ? 'Afhalen' : esc(`${b.adres_postcode ?? ''} ${b.adres_gemeente ?? ''}`)}</td><td>${esc(STATUS_NAAM[b.status] || b.status)}</td><td class="getal">${euro(b.totaal_cent)}</td></tr>`).join('')}</tbody>
+      <tbody>${bestellingen.map((b) => `<tr><td><a href="#bestelling/${b.id}">${esc(b.nummer)}</a></td><td>${esc(b.aangemaakt.slice(0, 16))}</td><td>${esc(b.naam)}</td><td>${b.levering === 'afhalen' ? 'Afhalen' : esc(`${b.adres_postcode ?? ''} ${b.adres_gemeente ?? ''}`)}</td><td>${esc(STATUS_NAAM[b.status] || b.status)}</td><td class="getal">${euro(b.totaal_cent)}</td></tr>`).join('')}</tbody>
     </table></div>`
-    : `<div class="leeg"><strong>Geen bestellingen${status ? ` met status "${esc(STATUS_NAAM[status])}"` : ''}.</strong><span>Betaalde bestellingen verschijnen hier zodra het afrekenen online staat.</span></div>`}`;
+    : `<div class="leeg"><strong>Geen bestellingen${status ? ` met status "${esc(STATUS_NAAM[status])}"` : ''}.</strong><span>Betaalde bestellingen verschijnen hier vanzelf.</span></div>`}`;
   app.querySelector('.filters').addEventListener('click', (e) => { const s = e.target.dataset.status; if (s !== undefined) toonBestellingen(s); });
+}
+
+async function toonBestelling(id) {
+  const { bestelling: b } = await api(`/api/beheer/bestellingen/${id}`);
+  const KNOP = { klaargezet: 'Klaargezet', geleverd: b.levering === 'afhalen' ? 'Afgehaald' : 'Geleverd', betaald: 'Terug naar "te verwerken"', geannuleerd: 'Annuleren' };
+  app.innerHTML = `
+    <a class="terug" href="#bestellingen">← Alle bestellingen</a>
+    <div class="kop"><h1>${esc(b.nummer)}</h1><span class="label ${b.status === 'betaald' ? 'aan' : ''}">${esc(STATUS_NAAM[b.status] || b.status)}</span>
+      <p>Besteld op ${esc(b.aangemaakt.slice(0, 16))}${b.betaald_op ? ` · betaald op ${esc(b.betaald_op.slice(0, 16))}` : ''} · Mollie: ${esc(b.mollie_status || '–')}</p></div>
+    <div class="rij2" style="align-items:start">
+      <fieldset><legend>Klant</legend>
+        <div><strong>${esc(b.naam)}</strong><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a><br><a href="tel:${esc(b.telefoon.replace(/[^0-9+]/g, ''))}">${esc(b.telefoon)}</a></div>
+        <div><strong>${b.levering === 'afhalen' ? 'Afhalen' : 'Leveren aan'}</strong>${b.levering === 'leveren' ? `<br>${esc(b.adres_straat)}<br>${esc(b.adres_postcode)} ${esc(b.adres_gemeente)}` : ''}</div>
+        ${b.opmerking ? `<div><strong>Opmerking van de klant</strong><br>${esc(b.opmerking)}</div>` : ''}
+      </fieldset>
+      <fieldset><legend>Bestelling</legend>
+        <div class="tabel" style="border:0"><table>
+          <tbody>${b.regels.map((r) => `<tr><td>${esc(r.aantal)} ×</td><td style="white-space:normal">${esc(r.naam)}<br><small>${esc(r.eenheid)}</small></td><td class="getal">${euro(r.prijs_cent * r.aantal)}</td></tr>`).join('')}
+          <tr><td></td><td>${b.levering === 'afhalen' ? 'Afhalen' : 'Levering'}</td><td class="getal">${euro(b.leverkost_cent)}</td></tr>
+          <tr><td></td><td><strong>Totaal</strong></td><td class="getal"><strong>${euro(b.totaal_cent)}</strong></td></tr></tbody>
+        </table></div>
+      </fieldset>
+    </div>
+    <form id="formulier" novalidate style="margin-top:20px">
+      <fieldset><legend>Opvolging</legend>
+        ${veld('notitie', 'Notitie (alleen voor jou)', tekstVak('notitie', b.notitie, 'maxlength="2000"'))}
+        <div style="display:flex;gap:10px;flex-wrap:wrap" id="statusknoppen">
+          ${b.mag_naar.map((s) => `<button type="button" class="btn ${s === 'geannuleerd' ? 'gevaar' : s === 'betaald' ? 'wit' : ''}" data-naar="${s}">${esc(KNOP[s] || s)}</button>`).join('')}
+        </div>
+        ${b.mag_naar.includes('geannuleerd') && b.status !== 'open' ? '<span class="hulp">Annuleren betaalt niet automatisch terug. Dat doe je in je Mollie-dashboard.</span>' : ''}
+      </fieldset>
+    </form>
+    ${bewaarBalk('Notitie bewaren')}`;
+  const form = document.getElementById('formulier');
+  volgWijzigingen(form);
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    bewaar(document.getElementById('bewaarknop'), async () => {
+      try { await api(`/api/beheer/bestellingen/${id}`, { methode: 'PATCH', body: { notitie: form.notitie.value } }); melding('Notitie bewaard'); }
+      catch (err) { melding(err.bericht, true); throw err; }
+    }).catch(() => {});
+  });
+  document.getElementById('statusknoppen').addEventListener('click', async (e) => {
+    const k = e.target.closest('[data-naar]');
+    if (!k) return;
+    if (k.dataset.naar === 'geannuleerd' && k.dataset.zeker !== '1') { k.dataset.zeker = '1'; k.textContent = 'Zeker annuleren?'; return; }
+    try {
+      await api(`/api/beheer/bestellingen/${id}`, { methode: 'PATCH', body: { status: k.dataset.naar, notitie: form.notitie.value } });
+      vuil = false; melding('Status aangepast'); toonBestelling(id);
+    } catch (err) { melding(err.bericht, true); }
+  });
 }
 
 // =========================== NAVIGATIE ===========================
@@ -411,19 +462,20 @@ async function route() {
   }
   vorigeHash = location.hash;
   const [tab, id] = (location.hash.slice(1) || 'producten').split('/');
-  const actief = tab === 'product' ? 'producten' : tab;
+  const actief = tab === 'product' ? 'producten' : tab === 'bestelling' ? 'bestellingen' : tab;
   document.querySelectorAll('[data-tab]').forEach((a) => a.setAttribute('aria-current', a.dataset.tab === actief ? 'page' : 'false'));
   app.innerHTML = '<p class="laden">Even laden…</p>';
   try {
     if (tab === 'product' && id) await toonProduct(id);
     else if (tab === 'bestellingen') await toonBestellingen();
+    else if (tab === 'bestelling' && id) await toonBestelling(id);
     else if (tab === 'levering') await toonInstelling('levering');
     else if (tab === 'teksten') await toonInstelling('teksten');
     else if (tab === 'onderneming') await toonInstelling('bedrijf');
     else await toonProducten();
     window.scrollTo(0, 0);
   } catch (err) {
-    app.innerHTML = `<div class="leeg"><strong>Dit lukte niet.</strong><span>${esc(err.bericht || 'Onbekende fout.')}</span><button class="btn" type="button" onclick="location.reload()">Opnieuw proberen</button></div>`;
+    app.innerHTML = `<div class="leeg"><strong>Dit lukte niet.</strong><span>${esc(err.bericht || 'Onbekende fout.')}</span><a class="btn" href="">Opnieuw proberen</a></div>`;
   }
 }
 

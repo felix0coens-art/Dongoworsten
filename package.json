@@ -7,7 +7,8 @@
     "db:seed:local": "wrangler d1 execute DB --local --file seed/voorbeeld.sql",
     "dev": "wrangler dev --port 8788",
     "deploy": "wrangler deploy",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "mollie:nep": "node tests/nep-mollie.js"
   },
   "devDependencies": {
     "wrangler": "4.156.2"

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Worst · Dongo Worsten</title>
+<meta name="description" content="Ambachtelijke worst van Dongo Worsten: ingrediënten, allergenen en prijs.">
+<link rel="icon" href="/logo-rond.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
+<link rel="stylesheet" href="/css/winkel.css">
+</head>
+<body>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Dongo Worsten, naar de startpagina"><img src="/logo.svg" alt="Dongo" width="106" height="52"></a>
+    <nav class="nav" aria-label="Hoofdmenu">
+      <a href="/#worsten">Worsten</a>
+      <a href="/#verhaal">Het verhaal</a>
+      <a href="/#levering">Levering</a>
+    </nav>
+    <a class="cart-btn" id="cart-btn" href="/mandje" aria-label="Mandje"><span class="label">Mandje</span><span class="count" id="cart-count">0</span></a>
+  </div>
+</header>
+
+<main id="product">
+  <div class="wrap"><p class="laad">Laden…</p></div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <img src="/logo-rond.svg" alt="" width="120" height="120">
+    <div>
+      <h3>Dongo Worsten</h3>
+      <ul id="voet-bedrijf"></ul>
+    </div>
+    <div>
+      <h3>Winkel</h3>
+      <ul>
+        <li><a href="/#worsten">Alle worsten</a></li>
+        <li><a href="/#levering">Levering</a></li>
+        <li><a href="/mandje">Mandje</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Het kleine lettertje</h3>
+      <ul>
+        <li><a href="/voorwaarden">Algemene voorwaarden</a></li>
+        <li><a href="/privacy">Privacyverklaring</a></li>
+      </ul>
+    </div>
+    <p class="tiny"><span>Alle prijzen inclusief <span data-btw>6 %</span> btw.</span><span>Bederfelijke voeding: geen herroepingsrecht.</span></p>
+  </div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="module" src="/js/worst.js"></script>
+</body>
+</html>

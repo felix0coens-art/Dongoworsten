@@ -9,7 +9,7 @@ Website en webshop voor Dongo Worsten, de ambachtelijke worsten van Victor Coens
 | 0. Input | Logo, foto's, ondernemingsgegevens | ✅ |
 | 1. Ontwerp | Homepage en productpagina (statisch, voorbeeldproducten) | ✅ goedgekeurd |
 | 2. Basis | D1-database, beheer met login, foto's in R2 | ✅ lokaal getest; database en bucket online, Worker nog te koppelen |
-| 3. Shop | Catalogus uit de database, mandje, afrekenen met Mollie (test), webhook | |
+| 3. Shop | Catalogus uit de database, mandje, afrekenen met Mollie (test), webhook | ✅ lokaal getest met nagebootste Mollie, nog niet online |
 | 4. Mails | Bevestiging naar de klant, bestelmelding naar Victor | |
 | 5. Juridisch | Algemene voorwaarden, privacyverklaring, ondernemingsgegevens | |
 | 6. Live | Domein, Mollie live-sleutel | |
@@ -34,9 +34,18 @@ npm install
 cp .dev.vars.example .dev.vars   # lokaal ben je zo automatisch beheerder
 npm run db:migrate:local
 npm run db:seed:local
+npm run mollie:nep               # nagebootste Mollie op poort 8790 (apart venster)
 npm run dev                      # http://localhost:8788 en http://localhost:8788/beheer/
 npm test
 ```
+
+## De winkel
+
+- `/` startpagina, `/worst/<naam>` productpagina, `/mandje` mandje en afrekenen, `/bedankt` na het betalen, `/voorwaarden` en `/privacy`.
+- Het mandje staat in de browser (alleen product-id en aantal). `/api/mandje` rekent het na met de prijzen uit de database.
+- `/api/afrekenen` controleert alles opnieuw, maakt de bestelling aan (status *open*) en één Mollie-betaling voor het totaal.
+- `/api/mollie/webhook`: Mollie meldt een wijziging; de server vraagt de status zelf op bij Mollie. Bij *paid* wordt de bestelling *betaald* en gaat de voorraad omlaag (één keer, ook als de melding dubbel komt). Klopt het bedrag niet, dan komt er een notitie in plaats van "betaald".
+- De bedankpagina vraagt de status ook zelf na, voor het geval de webhook nog niet binnen is.
 
 ## Beheer: wat kan Victor zelf
 
@@ -44,7 +53,7 @@ npm test
 - **Levering:** leveren aan/uit, leverkost, gratis vanaf, minimumbedrag, postcodes, afhalen aan/uit met adres en uitleg.
 - **Teksten:** titel en tekst op de startpagina, het verhaal, algemene voorwaarden, privacyverklaring.
 - **Onderneming:** naam, ondernemingsnummer, adres, e-mail, telefoon, btw-percentage.
-- **Bestellingen:** overzicht per status (vult zich vanaf fase 3).
+- **Bestellingen:** overzicht per status; per bestelling de klant, het adres, de worsten, een notitie, en de status (klaargezet, geleverd/afgehaald, geannuleerd).
 
 Een product kan pas zichtbaar worden als de ingrediënten ingevuld zijn.
 

@@ -12,7 +12,12 @@ import * as beheerProductFotos from './routes/api/beheer/producten/[id]/fotos.js
 import * as beheerFoto from './routes/api/beheer/fotos/[id].js';
 import * as beheerInstellingen from './routes/api/beheer/instellingen/index.js';
 import * as beheerInstelling from './routes/api/beheer/instellingen/[sleutel].js';
-import * as beheerBestellingen from './routes/api/beheer/bestellingen.js';
+import * as beheerBestellingen from './routes/api/beheer/bestellingen/index.js';
+import * as beheerBestelling from './routes/api/beheer/bestellingen/[id].js';
+import * as mandje from './routes/api/mandje.js';
+import * as afrekenen from './routes/api/afrekenen.js';
+import * as mollieWebhook from './routes/api/mollie/webhook.js';
+import * as bestelling from './routes/api/bestelling.js';
 import * as producten from './routes/api/producten/index.js';
 import * as product from './routes/api/producten/[slug].js';
 import * as winkel from './routes/api/winkel.js';
@@ -28,6 +33,11 @@ const ROUTES = [
   ['/api/beheer/instellingen', beheerInstellingen],
   ['/api/beheer/instellingen/:sleutel', beheerInstelling],
   ['/api/beheer/bestellingen', beheerBestellingen],
+  ['/api/beheer/bestellingen/:id', beheerBestelling],
+  ['/api/mandje', mandje],
+  ['/api/afrekenen', afrekenen],
+  ['/api/mollie/webhook', mollieWebhook],
+  ['/api/bestelling', bestelling],
   ['/api/producten', producten],
   ['/api/producten/:slug', product],
   ['/api/winkel', winkel],
@@ -91,6 +101,12 @@ export default {
       return beheerPaginaPoort.onRequest(maakContext(request, env, ctx, {}, data, () => env.ASSETS.fetch(request)));
     }
     if (pad.startsWith('/api/') || pad.startsWith('/fotos/')) return api(request, env, ctx, pad, data);
+
+    // Productpagina's: /worst/<slug> toont altijd dezelfde pagina; die haalt het product zelf op.
+    if (/^\/worst\/[a-z0-9-]+\/?$/.test(pad)) {
+      const pagina = await env.ASSETS.fetch(new Request(new URL('/worst', request.url), request));
+      return new Response(pagina.body, pagina);
+    }
 
     return env.ASSETS.fetch(request);
   },
