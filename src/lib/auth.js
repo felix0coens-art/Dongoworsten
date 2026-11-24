@@ -34,16 +34,21 @@ async function haalSleutels(teamDomein) {
   return keys;
 }
 
+// Gooit een Error met een korte reden als het token niet klopt; geeft anders het e-mailadres terug.
+function weiger(reden, extra = {}) {
+  return Object.assign(new Error(reden), { reden, ...extra });
+}
+
 async function controleerToken(token, env) {
   const delen = token.split('.');
-  if (delen.length !== 3) return null;
-  const kop = leesJsonDeel(delen[0]);
-  const inhoud = leesJsonDeel(delen[1]);
-  if (kop.alg !== 'RS256') return null;
+  if (delen.length !== 3) throw weiger('login-vorm');
+  let kop, inhoud;
+  try { kop = leesJsonDeel(delen[0]); inhoud = leesJsonDeel(delen[1]); } catch { throw weiger('login-vorm'); }
+  if (kop.alg !== 'RS256') throw weiger('login-algoritme');
 
   const sleutels = await haalSleutels(env.ACCESS_TEAM_DOMAIN);
   const jwk = sleutels.find((k) => k.kid === kop.kid);
-  if (!jwk) return null;
+  if (!jwk) throw weiger('login-sleutel-onbekend');
   const sleutel = await crypto.subtle.importKey(
     'jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify'],
   );
@@ -51,21 +56,19 @@ async function controleerToken(token, env) {
     'RSASSA-PKCS1-v1_5', sleutel, b64urlNaarBytes(delen[2]),
     new TextEncoder().encode(`${delen[0]}.${delen[1]}`),
   );
-  if (!geldig) return null;
+  if (!geldig) throw weiger('login-ongeldig');
 
+  // Vanaf hier is het token echt door Cloudflare ondertekend; de waarden mogen in een foutmelding.
   const nu = Math.floor(Date.now() / 1000);
-  if (inhoud.iss !== env.ACCESS_TEAM_DOMAIN) return null;
-  if (typeof inhoud.exp !== 'number' || inhoud.exp < nu) return null;
-  if (typeof inhoud.nbf === 'number' && inhoud.nbf > nu + 60) return null;
+  if (inhoud.iss !== env.ACCESS_TEAM_DOMAIN) throw weiger('login-ander-team', { info: `uitgever ${inhoud.iss}` });
+  if (typeof inhoud.exp !== 'number' || inhoud.exp < nu) throw weiger('login-verlopen');
+  if (typeof inhoud.nbf === 'number' && inhoud.nbf > nu + 60) throw weiger('login-nog-niet-geldig');
   const aud = Array.isArray(inhoud.aud) ? inhoud.aud : [inhoud.aud];
   if (!aud.includes(env.ACCESS_AUD)) {
-    // Geldige login, maar voor een andere Access-applicatie. Geen toegang; wel de AUD meegeven
-    // zodat de beheerder ze in wrangler.toml kan zetten. De AUD is geen geheim.
-    const e = new Error('andere-access-applicatie');
-    e.aud = aud.filter((x) => typeof x === 'string' && /^[0-9a-f]{64}$/.test(x));
-    throw e;
+    throw weiger('andere-access-applicatie', { aud: aud.filter((x) => typeof x === 'string' && /^[0-9a-f]{64}$/.test(x)) });
   }
-  return typeof inhoud.email === 'string' ? inhoud.email.toLowerCase() : null;
+  if (typeof inhoud.email !== 'string') throw weiger('login-zonder-email');
+  return inhoud.email.toLowerCase();
 }
 
 function toegelaten(env) {
@@ -117,11 +120,10 @@ export async function beheerderMetReden(request, env, ctx) {
     try {
       email = await controleerToken(token, env);
     } catch (e) {
-      if (e.message === 'andere-access-applicatie') return { email: null, reden: 'andere-access-applicatie', aud: e.aud };
+      if (e.reden) return { email: null, reden: e.reden, aud: e.aud, info: e.info };
       console.error('Access-token niet te controleren:', e.message);
       return { email: null, reden: 'login-niet-te-controleren' };
     }
-    if (!email) return { email: null, reden: 'login-ongeldig' };
   }
   if (!lijst.includes(email)) return { email: null, reden: 'adres-niet-op-lijst' };
   return { email, reden: 'ok' };
