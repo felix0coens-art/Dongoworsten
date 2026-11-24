@@ -5,7 +5,7 @@ Alles gebeurt in het Cloudflare-dashboard (dash.cloudflare.com). Er zijn geen sl
 ## 1. Database (D1)
 1. **Storage & Databases → D1 SQL Database → Create**. Naam: `dongoworsten`.
 2. Kopieer de **Database ID**; die komt in `wrangler.toml`.
-3. Open het tabblad **Console**, plak de volledige inhoud van `migrations/0001_basis.sql` en klik **Execute**.
+3. Open het tabblad **Console**, plak de inhoud van `docs/d1-console.sql` (zelfde schema, zonder commentaar, want de console plakt alles op één regel) en druk Enter.
    Voer `seed/voorbeeld.sql` niet uit: dat is alleen voor lokaal testen.
 
 ## 2. Opslag voor foto's (R2)
