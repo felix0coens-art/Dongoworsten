@@ -1,6 +1,7 @@
 // Een Mollie-betaling verwerken. Wordt aangeroepen door de webhook én door de bedankpagina
 // (als de webhook nog niet binnen is). Mag dus veilig meerdere keren draaien.
 import { haalBetaling, centNaarMollie } from './mollie.js';
+import { verstuurBestelmails } from './mail.js';
 
 const MISLUKT = ['canceled', 'expired', 'failed'];
 
@@ -25,7 +26,14 @@ export async function verwerkBetaling(env, eigenUrl, betaalId) {
   } else if (MISLUKT.includes(betaling.status)) {
     await env.DB.prepare("UPDATE bestellingen SET status = 'mislukt' WHERE id = ? AND status = 'open'").bind(b.id).run();
   }
-  return env.DB.prepare('SELECT * FROM bestellingen WHERE id = ?').bind(b.id).first();
+  const nu = await env.DB.prepare('SELECT * FROM bestellingen WHERE id = ?').bind(b.id).first();
+  // Betaald en nog geen mails? Dan nu versturen. Mislukt dat, dan gooit dit een fout en
+  // antwoordt de webhook met 500, zodat Mollie het later opnieuw probeert.
+  if (nu && !nu.mails_verstuurd && ['betaald', 'klaargezet', 'geleverd'].includes(nu.status)) {
+    const site = (env.SITE_URL || new URL(eigenUrl).origin).replace(/\/$/, '');
+    if (await verstuurBestelmails(env, eigenUrl, nu, site)) nu.mails_verstuurd = 1;
+  }
+  return nu;
 }
 
 async function verlaagVoorraad(env, bestellingId) {

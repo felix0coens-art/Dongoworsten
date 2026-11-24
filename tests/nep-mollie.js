@@ -4,6 +4,7 @@
 import http from 'node:http';
 
 const betalingen = new Map();
+const verstuurd = new Map();
 const POORT = Number(process.env.POORT || 8790);
 
 function stuur(res, status, data, type = 'application/json') {
@@ -14,6 +15,18 @@ const lees = (req) => new Promise((ok) => { let d = ''; req.on('data', (c) => (d
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${POORT}`);
+  // Nagebootste Resend: mails worden niet verstuurd maar gelogd en bewaard in /tmp of de map van POST_MAP.
+  if (req.method === 'POST' && url.pathname === '/emails') {
+    if (req.headers.authorization !== 'Bearer re_lokaal') return stuur(res, 401, { name: 'validation_error', message: 'API key is invalid' });
+    const m = JSON.parse(await lees(req));
+    const sleutel = req.headers['idempotency-key'];
+    if (sleutel && verstuurd.has(sleutel)) return stuur(res, 200, { id: verstuurd.get(sleutel) });
+    const id = 'mail_' + Math.random().toString(36).slice(2, 10);
+    if (sleutel) verstuurd.set(sleutel, id);
+    console.log('MAIL', JSON.stringify({ van: m.from, naar: m.to, onderwerp: m.subject, antwoordAan: m.reply_to }));
+    if (process.env.POST_MAP) (await import('node:fs')).writeFileSync(`${process.env.POST_MAP}/${id}.html`, m.html);
+    return stuur(res, 200, { id });
+  }
   if (url.pathname.startsWith('/v2/') && req.headers.authorization !== 'Bearer test_lokaal') {
     return stuur(res, 401, { status: 401, title: 'Unauthorized Request', detail: 'Missing authentication, or failed to authenticate' });
   }

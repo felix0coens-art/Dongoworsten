@@ -405,7 +405,7 @@ async function toonBestelling(id) {
   app.innerHTML = `
     <a class="terug" href="#bestellingen">← Alle bestellingen</a>
     <div class="kop"><h1>${esc(b.nummer)}</h1><span class="label ${b.status === 'betaald' ? 'aan' : ''}">${esc(STATUS_NAAM[b.status] || b.status)}</span>
-      <p>Besteld op ${esc(b.aangemaakt.slice(0, 16))}${b.betaald_op ? ` · betaald op ${esc(b.betaald_op.slice(0, 16))}` : ''} · Mollie: ${esc(b.mollie_status || '–')}</p></div>
+      <p>Besteld op ${esc(b.aangemaakt.slice(0, 16))}${b.betaald_op ? ` · betaald op ${esc(b.betaald_op.slice(0, 16))}` : ''} · Mollie: ${esc(b.mollie_status || '–')}${['betaald', 'klaargezet', 'geleverd'].includes(b.status) ? ` · Bevestigingsmail: ${b.mails_verstuurd ? 'verstuurd' : 'nog niet verstuurd'}` : ''}</p></div>
     <div class="rij2" style="align-items:start">
       <fieldset><legend>Klant</legend>
         <div><strong>${esc(b.naam)}</strong><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a><br><a href="tel:${esc(b.telefoon.replace(/[^0-9+]/g, ''))}">${esc(b.telefoon)}</a></div>

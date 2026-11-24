@@ -10,8 +10,8 @@ Website en webshop voor Dongo Worsten, de ambachtelijke worsten van Victor Coens
 | 1. Ontwerp | Homepage en productpagina (statisch, voorbeeldproducten) | ✅ goedgekeurd |
 | 2. Basis | D1-database, beheer met login, foto's in R2 | ✅ lokaal getest; database en bucket online, Worker nog te koppelen |
 | 3. Shop | Catalogus uit de database, mandje, afrekenen met Mollie (test), webhook | ✅ lokaal getest met nagebootste Mollie, nog niet online |
-| 4. Mails | Bevestiging naar de klant, bestelmelding naar Victor | |
-| 5. Juridisch | Algemene voorwaarden, privacyverklaring, ondernemingsgegevens | |
+| 4. Mails | Bevestiging naar de klant, bestelmelding naar Victor | ✅ lokaal getest; wacht op Resend-account |
+| 5. Juridisch | Algemene voorwaarden, privacyverklaring, ondernemingsgegevens | ✅ online, na te lezen |
 | 6. Live | Domein, Mollie live-sleutel | |
 
 Na elke fase volgt eerst een akkoord voor we verdergaan.

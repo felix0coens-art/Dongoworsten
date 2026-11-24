@@ -29,10 +29,12 @@ enabled = true
 [vars]
 # Het echte adres van de winkel (canonieke links, sitemap, doorsturen van workers.dev).
 SITE_URL = "https://dongoworsten.be"
+# Afzender van de bestelmails (het domein moet bij Resend geverifieerd zijn).
+MAIL_VAN = "Dongo Worsten <bestellingen@dongoworsten.be>"
 # Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die het beheer beschermt.
 ACCESS_TEAM_DOMAIN = "https://sparkling-mountain-a630.cloudflareaccess.com"
 ACCESS_AUD = "2320ccf60f49057e59d9d59168e06b0d1c527114b08f9c866fb6694cfea78447"
 # Geheimen (in Cloudflare, niet in de code): BEHEER_EMAILS (wie mag beheren, komma-gescheiden)
-# en MOLLIE_API_KEY (test_… om te testen, live_… voor echte betalingen).
+# MOLLIE_API_KEY (test_… om te testen, live_… voor echte betalingen) en RESEND_API_KEY (bestelmails).
 # BEHEER_EMAILS staat als geheim
 # in Cloudflare (Worker > Settings > Variables and Secrets), niet in de code.

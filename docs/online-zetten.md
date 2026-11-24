@@ -34,3 +34,10 @@ Nieuwe bestanden in `migrations/` voeren we uit met `npx wrangler d1 migrations 
 Cloudflare bouwt de site met een eigen API-sleutel ("dongoworsten build token", zie Worker → Settings → Builds → API token).
 Wordt die verwijderd of vernieuwd, dan mislukt elke build met "The build token selected for this build has been deleted or rolled".
 Oplossing: kies bij API token "Create new token", sla op en push opnieuw (Retry gebruikt de oude sleutel).
+
+## Bestelmails (Resend)
+1. Maak een gratis account op resend.com.
+2. **Domains → Add domain**: `dongoworsten.be`, regio Europa (Ireland). Kies *Automatic setup* met Cloudflare als dat aangeboden wordt; anders zet je de getoonde DNS-records (MX, SPF, DKIM) in Cloudflare bij **dongoworsten.be → DNS → Records**. Wacht tot het domein op *Verified* staat.
+3. **API Keys → Create API key**: rechten *Sending access*, domein `dongoworsten.be`.
+4. Cloudflare: **dongoworsten → Settings → Variables and Secrets → Add**, type *Secret*, naam `RESEND_API_KEY`, waarde: de sleutel van Resend.
+5. De afzender is `bestellingen@dongoworsten.be` (`MAIL_VAN` in `wrangler.toml`); antwoorden gaan naar het e-mailadres uit **Beheer → Onderneming**, waar ook de meldingen van nieuwe bestellingen naartoe gaan.

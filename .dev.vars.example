@@ -1,4 +1,6 @@
 BEHEER_DEV_EMAIL=dev@localhost
-# Lokaal betalen met de nagebootste Mollie (node tests/nep-mollie.js):
+# Lokaal betalen en mailen met de nagebootste diensten (npm run mollie:nep):
 MOLLIE_API_KEY=test_lokaal
 MOLLIE_API_BASE=http://localhost:8790
+RESEND_API_KEY=re_lokaal
+RESEND_API_BASE=http://localhost:8790
