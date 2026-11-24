@@ -1,10 +1,11 @@
 // De beheerpagina's zelf: niet tonen aan wie geen beheerder is.
-import { beheerder } from '../../lib/auth.js';
+import { beheerderMetReden } from '../../lib/auth.js';
 
 export async function onRequest(context) {
-  const email = await beheerder(context.request, context.env);
+  const { email, reden } = await beheerderMetReden(context.request, context.env, context.ctx);
   if (!email) {
-    return new Response('Geen toegang. Meld je aan via het beheer van Dongo Worsten.', {
+    console.log('Beheer geweigerd:', reden);
+    return new Response(`Geen toegang tot het beheer van Dongo Worsten.\n\nReden: ${reden}`, {
       status: 403,
       headers: { 'content-type': 'text/plain; charset=utf-8' },
     });

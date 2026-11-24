@@ -1,11 +1,14 @@
 // Alles onder /api/beheer: alleen voor beheerders, en wijzigingen alleen vanaf de eigen site.
-import { beheerder } from '../../../lib/auth.js';
-import { fout } from '../../../lib/http.js';
+import { beheerderMetReden } from '../../../lib/auth.js';
+import { fout, json } from '../../../lib/http.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
-  const email = await beheerder(request, env);
-  if (!email) return fout(401, 'Je bent niet aangemeld als beheerder.');
+  const { email, reden } = await beheerderMetReden(request, env, context.ctx);
+  if (!email) {
+    console.log('Beheer-API geweigerd:', reden);
+    return json({ fout: 'Je bent niet aangemeld als beheerder.', reden }, 401);
+  }
 
   if (!['GET', 'HEAD'].includes(request.method)) {
     const origin = request.headers.get('origin');

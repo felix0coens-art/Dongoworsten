@@ -63,7 +63,7 @@ function kiesHandler(module, methode) {
 
 // Zelfde vorm als de context van Pages Functions, zodat de handlers niet hoeven te veranderen.
 function maakContext(request, env, ctx, params, data, volgende) {
-  return { request, env, params, data, next: volgende, waitUntil: ctx.waitUntil.bind(ctx) };
+  return { request, env, params, data, next: volgende, ctx, waitUntil: ctx.waitUntil.bind(ctx) };
 }
 
 async function api(request, env, ctx, pad, data) {

@@ -50,3 +50,22 @@ test('dev-aanmelding werkt alleen op localhost', async () => {
   assert.equal(await beheerder(req(null, 'localhost:8788'), dev), 'dev@localhost');
   assert.equal(await beheerder(req(null, 'dongo.be'), dev), null);
 });
+
+// Access op de Worker zelf: de runtime geeft ctx.access mee.
+import { beheerderMetReden } from '../src/lib/auth.js';
+const ctxAccess = (email, aud = AUD) => ({ access: { aud, getIdentity: async () => ({ email }) } });
+
+test('Worker-Access: toegelaten adres via ctx.access', async () => {
+  assert.equal(await beheerder(req(null), env, ctxAccess('Victor@Voorbeeld.be')), 'victor@voorbeeld.be');
+});
+test('Worker-Access: adres niet op de lijst', async () => {
+  assert.deepEqual(await beheerderMetReden(req(null), env, ctxAccess('iemand@anders.be')), { email: null, reden: 'adres-niet-op-lijst' });
+});
+test('Worker-Access: andere applicatie', async () => {
+  assert.equal((await beheerderMetReden(req(null), env, ctxAccess('victor@voorbeeld.be', 'x'))).reden, 'andere-access-applicatie');
+});
+test('redenen bij weigering', async () => {
+  assert.equal((await beheerderMetReden(req(null), env)).reden, 'geen-login');
+  assert.equal((await beheerderMetReden(req(null), { ...env, BEHEER_EMAILS: '' })).reden, 'geen-beheerders-ingesteld');
+  assert.equal((await beheerderMetReden(req(null), { BEHEER_EMAILS: 'a@b.be' })).reden, 'access-niet-ingesteld');
+});

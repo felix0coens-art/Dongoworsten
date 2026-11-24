@@ -78,23 +78,49 @@ function cookie(request, naam) {
   return null;
 }
 
-/** Geeft het e-mailadres van de beheerder terug, of null als de toegang geweigerd is. */
-export async function beheerder(request, env) {
+/**
+ * Wie is de beheerder? Geeft { email, reden } terug; email is null als de toegang geweigerd is.
+ * De reden is een korte code zonder gevoelige gegevens, handig om een probleem te vinden.
+ *
+ * Twee manieren waarop Cloudflare Access een login doorgeeft:
+ *  1. Access op de Worker zelf: de runtime zet ctx.access (kan niet vervalst worden door een bezoeker).
+ *  2. Access op een domein: een ondertekend token in de header Cf-Access-Jwt-Assertion of de cookie CF_Authorization.
+ */
+export async function beheerderMetReden(request, env, ctx) {
   const url = new URL(request.url);
   const lokaal = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  if (lokaal && env.BEHEER_DEV_EMAIL) return String(env.BEHEER_DEV_EMAIL).toLowerCase();
+  if (lokaal && env.BEHEER_DEV_EMAIL) return { email: String(env.BEHEER_DEV_EMAIL).toLowerCase(), reden: 'lokaal' };
 
-  if (!env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return null;
-  const token = request.headers.get('cf-access-jwt-assertion') || cookie(request, 'CF_Authorization');
-  if (!token) return null;
+  if (!env.ACCESS_TEAM_DOMAIN || !env.ACCESS_AUD) return { email: null, reden: 'access-niet-ingesteld' };
+  const lijst = toegelaten(env);
+  if (!lijst.length) return { email: null, reden: 'geen-beheerders-ingesteld' };
 
   let email = null;
-  try {
-    email = await controleerToken(token, env);
-  } catch (e) {
-    console.error('Access-token niet te controleren:', e.message);
-    return null;
+  if (ctx && ctx.access) {
+    if (ctx.access.aud && ctx.access.aud !== env.ACCESS_AUD) return { email: null, reden: 'andere-access-applicatie' };
+    try {
+      const identiteit = await ctx.access.getIdentity();
+      email = typeof identiteit?.email === 'string' ? identiteit.email.toLowerCase() : null;
+    } catch (e) {
+      console.error('Access-identiteit niet op te halen:', e.message);
+    }
   }
-  if (!email || !toegelaten(env).includes(email)) return null;
-  return email;
+  if (!email) {
+    const token = request.headers.get('cf-access-jwt-assertion') || cookie(request, 'CF_Authorization');
+    if (!token) return { email: null, reden: 'geen-login' };
+    try {
+      email = await controleerToken(token, env);
+    } catch (e) {
+      console.error('Access-token niet te controleren:', e.message);
+      return { email: null, reden: 'login-niet-te-controleren' };
+    }
+    if (!email) return { email: null, reden: 'login-ongeldig' };
+  }
+  if (!lijst.includes(email)) return { email: null, reden: 'adres-niet-op-lijst' };
+  return { email, reden: 'ok' };
+}
+
+/** Geeft het e-mailadres van de beheerder terug, of null als de toegang geweigerd is. */
+export async function beheerder(request, env, ctx) {
+  return (await beheerderMetReden(request, env, ctx)).email;
 }
