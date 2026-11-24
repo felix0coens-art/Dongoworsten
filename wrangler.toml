@@ -1,0 +1,22 @@
+# Cloudflare Pages-project voor Dongo Worsten.
+# De database_id vullen we in wanneer de D1-database in Cloudflare is aangemaakt.
+name = "dongoworsten"
+pages_build_output_dir = "public"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "dongoworsten"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "FOTOS"
+bucket_name = "dongoworsten-fotos"
+
+[vars]
+# Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die /beheer beschermt.
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
+# Wie mag het beheer gebruiken (komma-gescheiden e-mailadressen).
+BEHEER_EMAILS = ""

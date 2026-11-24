@@ -8,7 +8,7 @@ Website en webshop voor Dongo Worsten, de ambachtelijke worsten van Victor Coens
 |---|---|---|
 | 0. Input | Logo, foto's, ondernemingsgegevens | ✅ |
 | 1. Ontwerp | Homepage en productpagina (statisch, voorbeeldproducten) | ✅ goedgekeurd |
-| 2. Basis | Cloudflare-project, D1-database, beheer met login | volgende stap |
+| 2. Basis | D1-database, beheer met login, foto's in R2 | ✅ lokaal getest, nog niet online |
 | 3. Shop | Catalogus uit de database, mandje, afrekenen met Mollie (test), webhook | |
 | 4. Mails | Bevestiging naar de klant, bestelmelding naar Victor | |
 | 5. Juridisch | Algemene voorwaarden, privacyverklaring, ondernemingsgegevens | |
@@ -18,8 +18,40 @@ Na elke fase volgt eerst een akkoord voor we verdergaan.
 
 ## Mappen
 
-- `ontwerp/` – het goedgekeurde ontwerp. Open `ontwerp/index.html` in een browser; `#product` toont de productpagina.
-- `merk/` – het logo: het originele Illustrator-bestand en SVG-versies (met en zonder blauwe cirkel).
+- `public/` – wat online komt. `index.html` is voorlopig het goedgekeurde ontwerp (`#product` toont de productpagina); in fase 3 wordt dat de echte winkel.
+- `public/beheer/` – de beheerpagina (`/beheer/`).
+- `functions/` – de server (Cloudflare Pages Functions): `api/beheer/*` voor het beheer, `api/producten` en `api/winkel` voor de winkel, `fotos/*` voor productfoto's.
+- `src/lib/` – gedeelde code: toegangscontrole, invoercontrole, database.
+- `migrations/` – het databaseschema. `seed/` – voorbeeldproducten, alleen voor lokaal testen.
+- `merk/` – het logo: het originele Illustrator-bestand en SVG-versies.
+
+## Lokaal draaien
+
+```bash
+npm install
+cp .dev.vars.example .dev.vars   # lokaal ben je zo automatisch beheerder
+npm run db:migrate:local
+npm run db:seed:local
+npm run dev                      # http://localhost:8788 en http://localhost:8788/beheer/
+npm test
+```
+
+## Beheer: wat kan Victor zelf
+
+- **Producten:** naam, teksten, prijs, verpakking en gewicht (kiloprijs wordt berekend), ingrediënten met allergenen tussen `*sterretjes*`, per allergeen bevat / sporen / nee, bewaren en bereiden, voorraad, zichtbaar of verborgen, volgorde, foto's (worden in de browser verkleind tot 1600 px).
+- **Levering:** leveren aan/uit, leverkost, gratis vanaf, minimumbedrag, postcodes, afhalen aan/uit met adres en uitleg.
+- **Teksten:** titel en tekst op de startpagina, het verhaal, algemene voorwaarden, privacyverklaring.
+- **Onderneming:** naam, ondernemingsnummer, adres, e-mail, telefoon, btw-percentage.
+- **Bestellingen:** overzicht per status (vult zich vanaf fase 3).
+
+Een product kan pas zichtbaar worden als de ingrediënten ingevuld zijn.
+
+## Beveiliging van het beheer
+
+1. Cloudflare Access staat voor `/beheer/*` en `/api/beheer/*` en laat alleen de toegelaten e-mailadressen binnen (inloggen met een code per mail).
+2. De server controleert het Access-token daarnaast zelf (handtekening, AUD, uitgever, vervaldatum) en het adres moet in `BEHEER_EMAILS` staan. Zonder `ACCESS_TEAM_DOMAIN` en `ACCESS_AUD` blijft het beheer dicht.
+3. Wijzigingen worden alleen aanvaard van de eigen site (Origin-controle).
+4. De lokale dev-aanmelding (`BEHEER_DEV_EMAIL`) werkt alleen op `localhost`.
 
 ## Merk
 

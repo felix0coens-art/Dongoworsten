@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Beheer · Dongo Worsten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap">
+<link rel="stylesheet" href="/beheer/beheer.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <a href="#producten" class="brand"><img src="/merk/dongo-logo.svg" alt="Dongo" width="82" height="40"><span>Beheer</span></a>
+    <nav class="tabs" aria-label="Beheer">
+      <a href="#producten" data-tab="producten">Producten</a>
+      <a href="#bestellingen" data-tab="bestellingen">Bestellingen</a>
+      <a href="#levering" data-tab="levering">Levering</a>
+      <a href="#teksten" data-tab="teksten">Teksten</a>
+      <a href="#onderneming" data-tab="onderneming">Onderneming</a>
+    </nav>
+    <span class="wie" id="wie"></span>
+  </div>
+</header>
+
+<main class="wrap" id="app" aria-live="polite">
+  <p class="laden">Even laden…</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="/beheer/beheer.js" type="module"></script>
+</body>
+</html>

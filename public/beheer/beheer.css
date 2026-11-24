@@ -1,0 +1,147 @@
+/* Beheer: zelfde merk als de winkel, maar rustiger en gemaakt om snel mee te werken, ook op de gsm. */
+:root {
+  --ink: #141615;
+  --pink: #E95D7C;
+  --pink-soft: #FBE3E9;
+  --sky: #D9EBF2;
+  --mist: #EEF5F8;
+  --paper: #FFFFFF;
+  --muted: #4A5357;
+  --ok: #2F8A4E;
+  --fout: #B3261E;
+  --line: 2px solid var(--ink);
+  --font: "Bricolage Grotesque", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--mist); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.5; }
+h1, h2, h3 { margin: 0; line-height: 1.1; letter-spacing: -0.01em; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--pink); outline-offset: 2px; }
+.wrap { max-width: 1040px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* top */
+.top { background: var(--paper); border-bottom: 3px solid var(--ink); position: sticky; top: 0; z-index: 10; }
+.top-in { display: flex; align-items: center; gap: 8px 24px; flex-wrap: wrap; padding-block: 8px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; }
+.brand img { height: 40px; width: auto; }
+.brand span { background: var(--ink); color: var(--paper); border-radius: 999px; padding: 2px 10px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; flex: 1; min-width: 0; scrollbar-width: none; }
+.tabs a { text-decoration: none; font-weight: 650; padding: 8px 12px; border-radius: 999px; white-space: nowrap; }
+.tabs a[aria-current="page"] { background: var(--pink); box-shadow: inset 0 0 0 2px var(--ink); }
+.wie { font-size: 13px; color: var(--muted); }
+
+main { padding-block: 28px 120px; }
+.laden { color: var(--muted); }
+.kop { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.kop h1 { font-size: 34px; }
+.kop p { color: var(--muted); width: 100%; margin: 0; }
+.terug { font-weight: 650; text-decoration: none; display: inline-block; margin-bottom: 8px; }
+
+/* knoppen */
+.btn { font: inherit; font-weight: 750; border: var(--line); background: var(--pink); color: var(--ink); border-radius: 999px; padding: 9px 20px; cursor: pointer; box-shadow: 0 3px 0 var(--ink); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+.btn:active { transform: translateY(3px); box-shadow: none; }
+.btn.wit { background: var(--paper); }
+.btn.klein { padding: 4px 12px; font-size: 14px; box-shadow: 0 2px 0 var(--ink); }
+.btn.gevaar { background: var(--paper); color: var(--fout); border-color: var(--fout); box-shadow: 0 3px 0 var(--fout); }
+.btn[disabled] { opacity: .5; cursor: wait; }
+
+/* lijst producten */
+.lijst { background: var(--paper); border: var(--line); border-radius: 14px; overflow: hidden; }
+.rij { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto; gap: 14px; align-items: center; padding: 10px 14px; text-decoration: none; border-top: 1px solid #D5DEE2; }
+.rij:first-child { border-top: 0; }
+.rij:hover { background: var(--mist); }
+.rij .duim { width: 56px; height: 56px; border-radius: 10px; border: 2px solid var(--ink); background: var(--sky) center / cover no-repeat; }
+.rij strong { display: block; }
+.rij small { color: var(--muted); }
+.prijs { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border: 2px solid var(--ink); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.label.aan { background: var(--sky); }
+.label.uit { border-style: dashed; color: var(--muted); border-color: var(--muted); }
+.label.op { background: var(--ink); color: var(--paper); }
+.leeg { background: var(--paper); border: 2px dashed var(--muted); border-radius: 14px; padding: 32px 20px; text-align: center; color: var(--muted); display: grid; gap: 12px; justify-items: center; }
+
+/* formulieren */
+form { display: grid; gap: 20px; }
+fieldset { margin: 0; border: var(--line); border-radius: 14px; background: var(--paper); padding: 18px; display: grid; gap: 16px; min-width: 0; }
+legend { font-weight: 800; font-size: 20px; padding: 0 8px; margin-left: -8px; }
+.veld { display: grid; gap: 4px; min-width: 0; }
+.veld > span:first-child { font-weight: 700; }
+.veld .hulp { font-size: 14px; color: var(--muted); }
+.veld .melding { font-size: 14px; color: var(--fout); font-weight: 650; }
+.veld.fout input, .veld.fout textarea { border-color: var(--fout); background: #FFF5F4; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="number"], textarea {
+  font: inherit; color: var(--ink); width: 100%; border: 2px solid var(--ink); border-radius: 10px; padding: 9px 12px; background: var(--paper);
+}
+textarea { min-height: 90px; resize: vertical; }
+textarea.groot { min-height: 260px; }
+.rij2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px; }
+.geld { position: relative; display: block; }
+.geld::before { content: "€"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-weight: 700; }
+.geld input { padding-left: 30px; }
+.schakel { display: flex; align-items: center; gap: 12px; font-weight: 650; cursor: pointer; }
+.schakel input { appearance: none; width: 48px; height: 28px; border: 2px solid var(--ink); border-radius: 999px; background: var(--mist); position: relative; cursor: pointer; flex: none; margin: 0; }
+.schakel input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); transition: left .15s; }
+.schakel input:checked { background: var(--pink); }
+.schakel input:checked::after { left: 22px; }
+.reken { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.reken strong { color: var(--ink); }
+
+/* allergenen */
+.allergenen { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 8px 16px; }
+.allergeen { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid #D5DEE2; }
+.allergeen > span { font-weight: 600; min-width: 0; }
+.keuze { display: inline-flex; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; flex: none; }
+.keuze label { cursor: pointer; }
+.keuze input { position: absolute; opacity: 0; pointer-events: none; }
+.keuze span { display: block; padding: 3px 10px; font-size: 13px; font-weight: 650; }
+.keuze label + label span { border-left: 2px solid var(--ink); }
+.keuze input:checked + span { background: var(--ink); color: var(--paper); }
+.keuze input[value="bevat"]:checked + span { background: var(--pink); color: var(--ink); }
+.keuze input:focus-visible + span { outline: 3px solid var(--pink); outline-offset: -3px; }
+.voorbeeld { background: var(--mist); border-radius: 10px; padding: 10px 12px; font-size: 15px; }
+.voorbeeld b { background: var(--pink-soft); border-bottom: 2px solid var(--pink); }
+
+/* foto's */
+.fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+.foto { border: 2px solid var(--ink); border-radius: 12px; overflow: hidden; background: var(--paper); display: grid; }
+.foto img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.foto .acties { display: flex; gap: 4px; padding: 6px; justify-content: space-between; flex-wrap: wrap; }
+.foto input { font-size: 13px; padding: 4px 8px; border-width: 1px; border-radius: 0; border: 0; border-top: 1px solid #D5DEE2; }
+.foto .eerste { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: var(--pink); padding: 2px 8px; border-bottom: 2px solid var(--ink); }
+.oplaad { border: 2px dashed var(--ink); border-radius: 12px; display: grid; place-items: center; text-align: center; padding: 14px; aspect-ratio: 1; cursor: pointer; font-weight: 700; background: var(--mist); }
+.oplaad small { display: block; font-weight: 500; color: var(--muted); }
+.oplaad input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.oplaad:focus-within { outline: 3px solid var(--pink); }
+
+/* bewaarbalk */
+.bewaar { position: fixed; left: 0; right: 0; bottom: 0; background: var(--paper); border-top: 3px solid var(--ink); z-index: 10; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.bewaar .wrap { display: flex; gap: 12px; align-items: center; justify-content: space-between; padding-block: 10px; flex-wrap: wrap; }
+.bewaar .status { color: var(--muted); font-size: 14px; }
+.bevestig { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-weight: 650; color: var(--fout); }
+
+/* bestellingen */
+.filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.filters button { font: inherit; font-size: 14px; border: 2px solid var(--ink); background: var(--paper); border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.tabel { overflow-x: auto; background: var(--paper); border: var(--line); border-radius: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; }
+th, td { text-align: left; padding: 10px 12px; border-top: 1px solid #D5DEE2; white-space: nowrap; }
+th { border-top: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+td.getal { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* melding */
+.toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); opacity: 0; visibility: hidden; background: var(--ink); color: var(--paper); border-radius: 14px; padding: 10px 20px; font-weight: 700; transition: .2s; z-index: 30; max-width: calc(100% - 32px); }
+.toast.toon { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
+.toast.fout { background: var(--fout); }
+
+@media (max-width: 640px) {
+  .rij { grid-template-columns: 48px minmax(0, 1fr) auto; }
+  .rij .duim { width: 48px; height: 48px; }
+  .rij .label { display: none; }
+  .wie { display: none; }
+  .tabs { flex-basis: 100%; order: 3; flex-wrap: wrap; }
+  .kop h1 { font-size: 28px; }
+  fieldset { padding: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
