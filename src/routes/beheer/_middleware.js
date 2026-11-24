@@ -2,10 +2,11 @@
 import { beheerderMetReden } from '../../lib/auth.js';
 
 export async function onRequest(context) {
-  const { email, reden } = await beheerderMetReden(context.request, context.env, context.ctx);
+  const { email, reden, aud } = await beheerderMetReden(context.request, context.env, context.ctx);
   if (!email) {
     console.log('Beheer geweigerd:', reden);
-    return new Response(`Geen toegang tot het beheer van Dongo Worsten.\n\nReden: ${reden}`, {
+    const extra = aud?.length ? `\n\nAUD-tag van je login: ${aud.join(', ')}\nStuur deze code door om het beheer te openen.` : '';
+    return new Response(`Geen toegang tot het beheer van Dongo Worsten.\n\nReden: ${reden}${extra}`, {
       status: 403,
       headers: { 'content-type': 'text/plain; charset=utf-8' },
     });

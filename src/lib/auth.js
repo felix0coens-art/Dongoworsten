@@ -54,11 +54,17 @@ async function controleerToken(token, env) {
   if (!geldig) return null;
 
   const nu = Math.floor(Date.now() / 1000);
-  const aud = Array.isArray(inhoud.aud) ? inhoud.aud : [inhoud.aud];
-  if (!aud.includes(env.ACCESS_AUD)) return null;
   if (inhoud.iss !== env.ACCESS_TEAM_DOMAIN) return null;
   if (typeof inhoud.exp !== 'number' || inhoud.exp < nu) return null;
   if (typeof inhoud.nbf === 'number' && inhoud.nbf > nu + 60) return null;
+  const aud = Array.isArray(inhoud.aud) ? inhoud.aud : [inhoud.aud];
+  if (!aud.includes(env.ACCESS_AUD)) {
+    // Geldige login, maar voor een andere Access-applicatie. Geen toegang; wel de AUD meegeven
+    // zodat de beheerder ze in wrangler.toml kan zetten. De AUD is geen geheim.
+    const e = new Error('andere-access-applicatie');
+    e.aud = aud.filter((x) => typeof x === 'string' && /^[0-9a-f]{64}$/.test(x));
+    throw e;
+  }
   return typeof inhoud.email === 'string' ? inhoud.email.toLowerCase() : null;
 }
 
@@ -97,7 +103,7 @@ export async function beheerderMetReden(request, env, ctx) {
 
   let email = null;
   if (ctx && ctx.access) {
-    if (ctx.access.aud && ctx.access.aud !== env.ACCESS_AUD) return { email: null, reden: 'andere-access-applicatie' };
+    if (ctx.access.aud && ctx.access.aud !== env.ACCESS_AUD) return { email: null, reden: 'andere-access-applicatie', aud: [ctx.access.aud] };
     try {
       const identiteit = await ctx.access.getIdentity();
       email = typeof identiteit?.email === 'string' ? identiteit.email.toLowerCase() : null;
@@ -111,6 +117,7 @@ export async function beheerderMetReden(request, env, ctx) {
     try {
       email = await controleerToken(token, env);
     } catch (e) {
+      if (e.message === 'andere-access-applicatie') return { email: null, reden: 'andere-access-applicatie', aud: e.aud };
       console.error('Access-token niet te controleren:', e.message);
       return { email: null, reden: 'login-niet-te-controleren' };
     }

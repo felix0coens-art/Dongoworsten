@@ -69,3 +69,19 @@ test('redenen bij weigering', async () => {
   assert.equal((await beheerderMetReden(req(null), { ...env, BEHEER_EMAILS: '' })).reden, 'geen-beheerders-ingesteld');
   assert.equal((await beheerderMetReden(req(null), { BEHEER_EMAILS: 'a@b.be' })).reden, 'access-niet-ingesteld');
 });
+
+test('geldige login voor een andere applicatie: geweigerd, met de AUD erbij', async () => {
+  const andere = 'a'.repeat(64);
+  const r = await beheerderMetReden(req(await token({ aud: [andere] })), env);
+  assert.equal(r.email, null);
+  assert.equal(r.reden, 'andere-access-applicatie');
+  assert.deepEqual(r.aud, [andere]);
+});
+test('vervalst token met andere AUD: geen AUD prijsgegeven', async () => {
+  const t = await token({});
+  const [k, , s] = t.split('.');
+  const vals = `${k}.${Buffer.from(JSON.stringify({ iss: TEAM, aud: ['b'.repeat(64)], exp: 9e9, email: 'victor@voorbeeld.be' })).toString('base64url')}.${s}`;
+  const r = await beheerderMetReden(req(vals), env);
+  assert.equal(r.reden, 'login-ongeldig');
+  assert.equal(r.aud, undefined);
+});
