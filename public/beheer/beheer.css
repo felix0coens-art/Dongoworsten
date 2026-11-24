@@ -135,6 +135,14 @@ td.getal { text-align: right; font-variant-numeric: tabular-nums; }
 .toast.toon { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
 .toast.fout { background: var(--fout); }
 
+@media (max-width: 420px) {
+  /* Smalle gsm: naam van het allergeen boven de drie knoppen, knoppen over de volle breedte. */
+  .allergeen { flex-wrap: wrap; gap: 4px; }
+  .allergeen > span:first-child { flex-basis: 100%; }
+  .keuze { flex: 1; }
+  .keuze label { flex: 1; }
+  .keuze span { text-align: center; padding: 6px 4px; }
+}
 @media (max-width: 640px) {
   .rij { grid-template-columns: 48px minmax(0, 1fr) auto; }
   .rij .duim { width: 48px; height: 48px; }
