@@ -1,5 +1,5 @@
-import { json, leesJson, veilig } from '../../../../src/lib/http.js';
-import { controleerInstelling } from '../../../../src/lib/validatie.js';
+import { json, leesJson, veilig } from '../../../../lib/http.js';
+import { controleerInstelling } from '../../../../lib/validatie.js';
 
 export const onRequestPut = ({ params, request, env }) =>
   veilig(async () => {

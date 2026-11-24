@@ -1,5 +1,5 @@
-import { json } from '../../../src/lib/http.js';
-import { ALLERGENEN } from '../../../src/lib/allergenen.js';
+import { json } from '../../../lib/http.js';
+import { ALLERGENEN } from '../../../lib/allergenen.js';
 
 export function onRequestGet({ data }) {
   return json({ email: data.beheerder, allergenen: ALLERGENEN });

@@ -1,6 +1,6 @@
 // Foto opladen bij een product. De browser verkleint de foto eerst; hier controleren we type en grootte.
-import { json, fout, veilig } from '../../../../../src/lib/http.js';
-import { haalProduct } from '../../../../../src/lib/db.js';
+import { json, fout, veilig } from '../../../../../lib/http.js';
+import { haalProduct } from '../../../../../lib/db.js';
 
 const MAX_BYTES = 6 * 1024 * 1024;
 const MAX_FOTOS = 12;

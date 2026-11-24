@@ -1,6 +1,6 @@
 // Alles onder /api/beheer: alleen voor beheerders, en wijzigingen alleen vanaf de eigen site.
-import { beheerder } from '../../../src/lib/auth.js';
-import { fout } from '../../../src/lib/http.js';
+import { beheerder } from '../../../lib/auth.js';
+import { fout } from '../../../lib/http.js';
 
 export async function onRequest(context) {
   const { request, env } = context;

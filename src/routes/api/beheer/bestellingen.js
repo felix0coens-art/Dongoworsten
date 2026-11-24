@@ -1,5 +1,5 @@
 // Overzicht van bestellingen. Bestellingen zelf komen pas binnen vanaf fase 3 (afrekenen).
-import { json, veilig } from '../../../src/lib/http.js';
+import { json, veilig } from '../../../lib/http.js';
 
 const STATUSSEN = ['open', 'betaald', 'klaargezet', 'geleverd', 'geannuleerd', 'mislukt'];
 

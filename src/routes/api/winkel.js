@@ -1,7 +1,7 @@
 // Publiek: wat de winkel moet weten over levering, onderneming en teksten.
-import { json, veilig } from '../../src/lib/http.js';
-import { leesInstellingen } from '../../src/lib/db.js';
-import { ALLERGENEN } from '../../src/lib/allergenen.js';
+import { json, veilig } from '../../lib/http.js';
+import { leesInstellingen } from '../../lib/db.js';
+import { ALLERGENEN } from '../../lib/allergenen.js';
 
 export const onRequestGet = ({ env }) =>
   veilig(async () => {

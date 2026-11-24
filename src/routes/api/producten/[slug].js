@@ -1,5 +1,5 @@
-import { json, fout, veilig } from '../../../src/lib/http.js';
-import { haalProduct, publiek } from '../../../src/lib/db.js';
+import { json, fout, veilig } from '../../../lib/http.js';
+import { haalProduct, publiek } from '../../../lib/db.js';
 
 export const onRequestGet = ({ params, env }) =>
   veilig(async () => {

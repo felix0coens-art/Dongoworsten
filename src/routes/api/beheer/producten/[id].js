@@ -1,6 +1,6 @@
-import { json, fout, leesJson, veilig } from '../../../../src/lib/http.js';
-import { controleerProduct } from '../../../../src/lib/validatie.js';
-import { haalProduct, uniekeSlug, productWaarden } from '../../../../src/lib/db.js';
+import { json, fout, leesJson, veilig } from '../../../../lib/http.js';
+import { controleerProduct } from '../../../../lib/validatie.js';
+import { haalProduct, uniekeSlug, productWaarden } from '../../../../lib/db.js';
 
 function leesId(params) {
   const id = Number(params.id);

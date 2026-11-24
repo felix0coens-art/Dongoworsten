@@ -1,8 +1,13 @@
-# Cloudflare Pages-project voor Dongo Worsten.
-# De database_id vullen we in wanneer de D1-database in Cloudflare is aangemaakt.
+# Cloudflare Worker voor Dongo Worsten: statische site uit public/ plus de API in src/.
 name = "dongoworsten"
-pages_build_output_dir = "public"
+main = "src/worker.js"
 compatibility_date = "2026-10-01"
+
+[assets]
+directory = "public"
+binding = "ASSETS"
+# Deze paden gaan eerst langs de Worker (login-controle, API, foto's); de rest serveert Cloudflare rechtstreeks.
+run_worker_first = ["/api/*", "/beheer", "/beheer/*", "/fotos/*"]
 
 [[d1_databases]]
 binding = "DB"
@@ -14,9 +19,12 @@ migrations_dir = "migrations"
 binding = "FOTOS"
 bucket_name = "dongoworsten-fotos"
 
+[observability]
+enabled = true
+
 [vars]
-# Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die /beheer beschermt.
+# Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die het beheer beschermt.
 ACCESS_TEAM_DOMAIN = ""
 ACCESS_AUD = ""
 # BEHEER_EMAILS (wie mag het beheer gebruiken, komma-gescheiden) staat als geheim
-# in Cloudflare (Instellingen > Variabelen en geheimen), niet in de code.
+# in Cloudflare (Worker > Settings > Variables and Secrets), niet in de code.

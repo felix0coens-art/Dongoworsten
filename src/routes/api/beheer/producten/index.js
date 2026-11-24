@@ -1,6 +1,6 @@
-import { json, leesJson, veilig } from '../../../../src/lib/http.js';
-import { controleerProduct } from '../../../../src/lib/validatie.js';
-import { lijstProducten, haalProduct, uniekeSlug, productWaarden } from '../../../../src/lib/db.js';
+import { json, leesJson, veilig } from '../../../../lib/http.js';
+import { controleerProduct } from '../../../../lib/validatie.js';
+import { lijstProducten, haalProduct, uniekeSlug, productWaarden } from '../../../../lib/db.js';
 
 export const onRequestGet = ({ env }) =>
   veilig(async () => json({ producten: await lijstProducten(env.DB, { alleenZichtbaar: false }) }));

@@ -1,5 +1,5 @@
 // Foto aanpassen (omschrijving, volgorde) of verwijderen.
-import { json, fout, leesJson, veilig, Ongeldig } from '../../../../src/lib/http.js';
+import { json, fout, leesJson, veilig, Ongeldig } from '../../../../lib/http.js';
 
 async function haal(env, params) {
   const id = Number(params.id);

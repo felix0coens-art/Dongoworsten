@@ -1,34 +1,31 @@
 # Online zetten op Cloudflare
 
-Alles gebeurt in het Cloudflare-dashboard (dash.cloudflare.com). Er zijn geen sleutels of wachtwoorden nodig in de code.
+De site draait als één **Cloudflare Worker** (`dongoworsten`): de statische bestanden uit `public/` en de API uit `src/`.
+Er staan geen sleutels of wachtwoorden in de code.
 
-## 1. Database (D1)
-1. **Storage & Databases → D1 SQL Database → Create**. Naam: `dongoworsten`.
-2. Kopieer de **Database ID**; die komt in `wrangler.toml`.
-3. Open het tabblad **Console**, plak de inhoud van `docs/d1-console.sql` (zelfde schema, zonder commentaar, want de console plakt alles op één regel) en druk Enter.
-   Voer `seed/voorbeeld.sql` niet uit: dat is alleen voor lokaal testen.
+## Al gedaan
+- D1-database `dongoworsten` met alle tabellen en startwaarden (`docs/d1-console.sql`).
+- R2-bucket `dongoworsten-fotos`.
+- Worker `dongoworsten` aangemaakt (nog met de standaardcode "Hello world").
 
-## 2. Opslag voor foto's (R2)
-1. **Storage & Databases → R2**. De eerste keer vraagt Cloudflare een betaalkaart; tot 10 GB is het gratis.
-2. **Create bucket**. Naam: `dongoworsten-fotos`. Locatie: automatisch. Laat de bucket privé: de site toont de foto's zelf.
+## 1. Worker koppelen aan GitHub
+1. **Compute → Workers & Pages → dongoworsten → Settings → Build → Connect** (Git repository).
+2. Repository: `Dongoworsten`. Branch: `claude/tender-bohr-st13f8` (later `main`).
+3. Build command: leeg. Deploy command: `npx wrangler deploy` (standaard). Root directory: `/`.
+4. Opslaan. Elke push naar die branch zet de site automatisch online.
 
-## 3. Pages-project
-1. **Workers & Pages → Create → Pages → Connect to Git**, kies `Dongoworsten`.
-2. Production branch: `claude/tender-bohr-st13f8` (later `main`).
-3. Framework: *None*. Build command: leeg. Output directory: `public`.
-4. Na de eerste deploy: **Settings → Variables and Secrets → Add**, type *Secret*, naam `BEHEER_EMAILS`,
-   waarde: de e-mailadressen van de beheerders, gescheiden door een komma.
+## 2. Wie mag beheren
+**dongoworsten → Settings → Variables and Secrets → Add**: type *Secret*, naam `BEHEER_EMAILS`,
+waarde: de e-mailadressen van de beheerders, gescheiden door een komma.
 
-## 4. Inloggen op het beheer (Cloudflare Access)
-1. **Zero Trust** (linkermenu). De eerste keer: kies een teamnaam, bv. `dongo`, en het gratis plan.
-2. **Access → Applications → Add an application → Self-hosted**.
-   - Naam: `Dongo beheer`. Sessieduur: 1 week.
-   - Domein 1: `dongoworsten.pages.dev`, pad `beheer`.
-   - Domein 2: `dongoworsten.pages.dev`, pad `api/beheer`.
-3. Policy: *Allow*, regel **Emails** met dezelfde adressen als in `BEHEER_EMAILS`.
-4. Inlogmethode: **One-time PIN** (een code per mail).
-5. Kopieer de **Application Audience (AUD) Tag** (Applications → Dongo beheer → Overview)
-   en het **teamdomein** (Settings → Custom Pages, bv. `https://dongo.cloudflareaccess.com`).
+## 3. Inloggen op het beheer (Cloudflare Access)
+Zolang er geen eigen domein is, beschermen we het hele `workers.dev`-adres. De winkel is toch nog niet publiek.
+1. **Zero Trust** (linkermenu): de eerste keer een teamnaam kiezen (bv. `dongo`) en het gratis plan.
+2. **dongoworsten → Settings → Domains & Routes → workers.dev → Enable Cloudflare Access**.
+3. **Zero Trust → Access → Applications** → de nieuwe applicatie → **Policies**: zet bij *Include → Emails* de adressen uit `BEHEER_EMAILS`. Inlogmethode: One-time PIN.
+4. Noteer de **Application Audience (AUD) Tag** en het **teamdomein** (bv. `https://dongo.cloudflareaccess.com`); die komen in `wrangler.toml`.
 
-## 5. Afronden
-Database ID, AUD-tag en teamdomein komen in `wrangler.toml`. Na de volgende deploy werkt `https://dongoworsten.pages.dev/beheer/`.
+Zodra er een eigen domein is, beschermen we alleen nog `/beheer` en `/api/beheer` en wordt de winkel publiek.
+
+## Databasewijzigingen later
+Nieuwe bestanden in `migrations/` voeren we uit met `npx wrangler d1 migrations apply DB --remote`, of via de Console van D1.

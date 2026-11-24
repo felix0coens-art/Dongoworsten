@@ -8,7 +8,7 @@ Website en webshop voor Dongo Worsten, de ambachtelijke worsten van Victor Coens
 |---|---|---|
 | 0. Input | Logo, foto's, ondernemingsgegevens | ✅ |
 | 1. Ontwerp | Homepage en productpagina (statisch, voorbeeldproducten) | ✅ goedgekeurd |
-| 2. Basis | D1-database, beheer met login, foto's in R2 | ✅ lokaal getest, nog niet online |
+| 2. Basis | D1-database, beheer met login, foto's in R2 | ✅ lokaal getest; database en bucket online, Worker nog te koppelen |
 | 3. Shop | Catalogus uit de database, mandje, afrekenen met Mollie (test), webhook | |
 | 4. Mails | Bevestiging naar de klant, bestelmelding naar Victor | |
 | 5. Juridisch | Algemene voorwaarden, privacyverklaring, ondernemingsgegevens | |
@@ -20,8 +20,10 @@ Na elke fase volgt eerst een akkoord voor we verdergaan.
 
 - `public/` – wat online komt. `index.html` is voorlopig het goedgekeurde ontwerp (`#product` toont de productpagina); in fase 3 wordt dat de echte winkel.
 - `public/beheer/` – de beheerpagina (`/beheer/`).
-- `functions/` – de server (Cloudflare Pages Functions): `api/beheer/*` voor het beheer, `api/producten` en `api/winkel` voor de winkel, `fotos/*` voor productfoto's.
+- `src/worker.js` – de Cloudflare Worker: stuurt `/api`, `/beheer` en `/fotos` naar de juiste handler, de rest naar de statische bestanden.
+- `src/routes/` – de handlers: `api/beheer/*` voor het beheer, `api/producten` en `api/winkel` voor de winkel, `fotos/*` voor productfoto's.
 - `src/lib/` – gedeelde code: toegangscontrole, invoercontrole, database.
+- `docs/online-zetten.md` – de stappen in Cloudflare.
 - `migrations/` – het databaseschema. `seed/` – voorbeeldproducten, alleen voor lokaal testen.
 - `merk/` – het logo: het originele Illustrator-bestand en SVG-versies.
 
@@ -60,7 +62,7 @@ Een product kan pas zichtbaar worden als de ingrediënten ingevuld zijn.
 
 ## Gekozen aanpak
 
-- Statische site op Cloudflare Pages, met Pages Functions voor afrekenen, webhook en beheer.
+- Eén Cloudflare Worker met statische bestanden (Workers Assets) en de API voor afrekenen, webhook en beheer.
 - Producten, prijzen, voorraad, leverkosten en teksten in Cloudflare D1; Victor beheert alles zelf via `/beheer`.
 - Productfoto's in Cloudflare R2, op te laden via het beheer.
 - Inloggen op het beheer via Cloudflare Access (Victor en Felix).

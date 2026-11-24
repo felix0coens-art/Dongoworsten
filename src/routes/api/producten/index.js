@@ -1,6 +1,6 @@
 // Publiek: de zichtbare producten.
-import { json, veilig } from '../../../src/lib/http.js';
-import { lijstProducten, publiek } from '../../../src/lib/db.js';
+import { json, veilig } from '../../../lib/http.js';
+import { lijstProducten, publiek } from '../../../lib/db.js';
 
 export const onRequestGet = ({ env }) =>
   veilig(async () => {

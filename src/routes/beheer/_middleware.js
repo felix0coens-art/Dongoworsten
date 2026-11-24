@@ -1,5 +1,5 @@
 // De beheerpagina's zelf: niet tonen aan wie geen beheerder is.
-import { beheerder } from '../../src/lib/auth.js';
+import { beheerder } from '../../lib/auth.js';
 
 export async function onRequest(context) {
   const email = await beheerder(context.request, context.env);
