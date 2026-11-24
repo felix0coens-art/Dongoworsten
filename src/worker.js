@@ -89,7 +89,13 @@ async function api(request, env, ctx, pad, data) {
 
 export default {
   async fetch(request, env, ctx) {
-    const pad = new URL(request.url).pathname;
+    const url = new URL(request.url);
+    // www.dongoworsten.be -> dongoworsten.be (één adres voor de winkel)
+    if (url.hostname.startsWith('www.')) {
+      url.hostname = url.hostname.slice(4);
+      return Response.redirect(url.toString(), 301);
+    }
+    const pad = url.pathname;
     const data = {};
 
     // Beheer-API: eerst de poort (login + herkomst), dan de route.
