@@ -30,6 +30,9 @@ enabled = true
 # Het echte adres van de winkel (canonieke links, sitemap, doorsturen van workers.dev).
 SITE_URL = "https://dongoworsten.be"
 # Afzender van de bestelmails (het domein moet bij Resend geverifieerd zijn).
+# Testmodus: zolang er geen MOLLIE_API_KEY is, kan je bestellen zonder te betalen (overal als TEST gemarkeerd).
+# Zet op "uit" of verwijder deze regel om bestellen zonder Mollie-sleutel te blokkeren.
+TESTMODUS = "aan"
 MAIL_VAN = "Dongo Worsten <bestellingen@dongoworsten.be>"
 # Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die het beheer beschermt.
 ACCESS_TEAM_DOMAIN = "https://sparkling-mountain-a630.cloudflareaccess.com"

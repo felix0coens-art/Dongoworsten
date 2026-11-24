@@ -38,3 +38,12 @@ test('afhalen: geen leveradres, wel het afhaaladres', () => {
   assert.ok(!m.html.includes('Kerkstraat'));
   assert.match(m.html, /afhaalmoment/);
 });
+
+test('testbestelling: overal als TEST gemarkeerd', () => {
+  const t = { ...b, mollie_status: 'test' };
+  const k = mailKlant(t, regels, inst, 'https://dongoworsten.be');
+  const w = mailWinkel(t, regels, 'https://dongoworsten.be');
+  assert.match(k.onderwerp, /^\[TEST\] /); assert.match(w.onderwerp, /^\[TEST\] /);
+  assert.match(k.html, /TESTBESTELLING/); assert.match(w.html, /TESTBESTELLING/); assert.match(k.tekst, /TESTBESTELLING/);
+  assert.ok(!k.html.includes('Je betaling is gelukt'));
+});

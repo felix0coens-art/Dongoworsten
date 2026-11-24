@@ -8,7 +8,7 @@ export const onRequestGet = ({ request, env }) =>
     const status = new URL(request.url).searchParams.get('status');
     const filter = STATUSSEN.includes(status) ? status : null;
     const { results } = await env.DB.prepare(
-      `SELECT id, nummer, status, levering, naam, email, telefoon, adres_postcode, adres_gemeente,
+      `SELECT id, nummer, status, mollie_status, levering, naam, email, telefoon, adres_postcode, adres_gemeente,
               totaal_cent, aangemaakt, betaald_op
        FROM bestellingen ${filter ? 'WHERE status = ?' : ''} ORDER BY aangemaakt DESC LIMIT 200`,
     ).bind(...(filter ? [filter] : [])).all();

@@ -393,7 +393,7 @@ async function toonBestellingen(status = 'betaald') {
     <div class="filters">${Object.entries(STATUS_NAAM).map(([k, n]) => `<button type="button" data-status="${k}" aria-pressed="${k === status}">${n}</button>`).join('')}</div>
     ${bestellingen.length ? `<div class="tabel"><table>
       <thead><tr><th>Nummer</th><th>Datum</th><th>Klant</th><th>Levering</th><th>Status</th><th class="getal">Totaal</th></tr></thead>
-      <tbody>${bestellingen.map((b) => `<tr><td><a href="#bestelling/${b.id}">${esc(b.nummer)}</a></td><td>${esc(b.aangemaakt.slice(0, 16))}</td><td>${esc(b.naam)}</td><td>${b.levering === 'afhalen' ? 'Afhalen' : esc(`${b.adres_postcode ?? ''} ${b.adres_gemeente ?? ''}`)}</td><td>${esc(STATUS_NAAM[b.status] || b.status)}</td><td class="getal">${euro(b.totaal_cent)}</td></tr>`).join('')}</tbody>
+      <tbody>${bestellingen.map((b) => `<tr><td><a href="#bestelling/${b.id}">${esc(b.nummer)}</a></td><td>${esc(b.aangemaakt.slice(0, 16))}</td><td>${esc(b.naam)}</td><td>${b.levering === 'afhalen' ? 'Afhalen' : esc(`${b.adres_postcode ?? ''} ${b.adres_gemeente ?? ''}`)}</td><td>${esc(STATUS_NAAM[b.status] || b.status)}${b.mollie_status === 'test' ? ' <span class="label uit">test</span>' : ''}</td><td class="getal">${euro(b.totaal_cent)}</td></tr>`).join('')}</tbody>
     </table></div>`
     : `<div class="leeg"><strong>Geen bestellingen${status ? ` met status "${esc(STATUS_NAAM[status])}"` : ''}.</strong><span>Betaalde bestellingen verschijnen hier vanzelf.</span></div>`}`;
   app.querySelector('.filters').addEventListener('click', (e) => { const s = e.target.dataset.status; if (s !== undefined) toonBestellingen(s); });

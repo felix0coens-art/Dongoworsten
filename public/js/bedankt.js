@@ -12,7 +12,7 @@ function overzicht(d) {
   <div class="totalen blok">
     <div><span>Worsten</span><span>${euro(d.subtotaal_cent)}</span></div>
     <div><span>${d.levering === 'afhalen' ? 'Afhalen' : 'Levering'}</span><span>${d.leverkost_cent ? euro(d.leverkost_cent) : 'gratis'}</span></div>
-    <div class="totaal"><span>Betaald</span><span>${euro(d.totaal_cent)}</span></div>
+    <div class="totaal"><span>${d.test ? 'Totaal (test)' : 'Betaald'}</span><span>${euro(d.totaal_cent)}</span></div>
   </div>`;
 }
 
@@ -29,7 +29,8 @@ async function kijk() {
     mandje.leeg();
     try { sessionStorage.removeItem('dongo-afrekenen'); } catch { /* niet erg */ }
     doel.innerHTML = `<p class="eyebrow">Bestelling ${esc(d.nummer)}</p><h1>Bedankt, ${voornaam}!</h1>
-      <p class="lead">Je betaling is gelukt. ${d.levering === 'afhalen' ? 'We nemen contact op om een afhaalmoment af te spreken.' : 'We nemen contact op om een levermoment af te spreken. Je worsten komen diepgevroren aan.'}</p>
+      ${d.test ? '<p class="foutblok">Dit was een testbestelling: er werd niets betaald en er wordt niets geleverd.</p>' : ''}
+      <p class="lead">${d.test ? 'Je testbestelling is ontvangen.' : 'Je betaling is gelukt.'} ${d.levering === 'afhalen' ? 'We nemen contact op om een afhaalmoment af te spreken.' : 'We nemen contact op om een levermoment af te spreken. Je worsten komen diepgevroren aan.'}</p>
       ${overzicht(d)}<a class="btn ghost" href="/">Terug naar de winkel</a>`;
   } else if (d.status === 'open') {
     pogingen++;

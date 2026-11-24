@@ -5,6 +5,9 @@ import { verstuurBestelmails } from './mail.js';
 
 const MISLUKT = ['canceled', 'expired', 'failed'];
 
+/** Testmodus: aan als TESTMODUS="aan" én er (nog) geen Mollie-sleutel is. Met een sleutel wordt er altijd echt betaald. */
+export const testmodus = (env) => env.TESTMODUS === 'aan' && !env.MOLLIE_API_KEY;
+
 export async function verwerkBetaling(env, eigenUrl, betaalId) {
   const betaling = await haalBetaling(env, eigenUrl, betaalId); // altijd zelf opvragen, nooit het bericht geloven
   const b = await env.DB.prepare('SELECT * FROM bestellingen WHERE mollie_id = ?').bind(betaling.id).first();
@@ -36,7 +39,7 @@ export async function verwerkBetaling(env, eigenUrl, betaalId) {
   return nu;
 }
 
-async function verlaagVoorraad(env, bestellingId) {
+export async function verlaagVoorraad(env, bestellingId) {
   const { results } = await env.DB.prepare('SELECT product_id, naam, aantal FROM bestelregels WHERE bestelling_id = ? AND product_id IS NOT NULL')
     .bind(bestellingId).all();
   const tekort = [];

@@ -106,8 +106,9 @@ function render() {
         <label class="vink" data-veld="akkoord"><input type="checkbox" name="akkoord" id="v-akkoord" ${c.akkoord ? 'checked' : ''}>
           <span>Ik ga akkoord met de <a href="/voorwaarden" target="_blank" rel="noopener">algemene voorwaarden</a> en de <a href="/privacy" target="_blank" rel="noopener">privacyverklaring</a>.</span></label>
         <p class="let-op">Omdat het om bederfelijke voeding gaat, heb je geen herroepingsrecht.</p>
-        <button class="btn betaal" type="submit" id="betaal">Betalen</button>
-        <p class="let-op">Je betaalt veilig via Mollie, met Bancontact of kaart.</p>
+        ${winkel.testmodus ? '<p class="foutblok">Testmodus: je bestelling wordt geregistreerd, maar je betaalt niets en er wordt niets geleverd.</p>' : ''}
+        <button class="btn betaal" type="submit" id="betaal">${winkel.testmodus ? 'Testbestelling plaatsen' : 'Betalen'}</button>
+        ${winkel.testmodus ? '' : '<p class="let-op">Je betaalt veilig via Mollie, met Bancontact of kaart.</p>'}
       </div>
     </aside>
   </form>`;
@@ -209,7 +210,7 @@ kassa.addEventListener('submit', async (e) => {
     location.href = r.betaalUrl;
   } catch (err) {
     knop.disabled = false;
-    knop.textContent = 'Betalen';
+    knop.textContent = winkel.testmodus ? 'Testbestelling plaatsen' : 'Betalen';
     if (err.problemen) { await herreken({ direct: true }); return toonFouten({ levering: err.bericht }); }
     toonFouten(err.velden || {});
     if (!err.velden) kassa.querySelector('.kassa-zij .blok')?.insertAdjacentHTML('beforeend', `<p class="foutblok">${esc(err.bericht)}</p>`);

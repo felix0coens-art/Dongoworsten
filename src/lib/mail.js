@@ -68,8 +68,11 @@ function omhulsel(titel, inhoud, voet) {
 </td></tr></table></body></html>`;
 }
 
+const TEST_BANNER = '<p style="background:#FBE3E9;border:2px dashed #E95D7C;border-radius:8px;padding:8px 12px;font-weight:700">TESTBESTELLING: er werd niets betaald en er wordt niets geleverd.</p>';
+
 export function mailKlant(b, regels, { bedrijf, levering }, siteUrl) {
   const voornaam = String(b.naam).split(' ')[0];
+  const test = b.mollie_status === 'test';
   const plaats = b.levering === 'afhalen'
     ? `<p><strong>Afhalen</strong><br>${esc(levering?.afhaal_adres)}${levering?.afhaal_info ? `<br>${esc(levering.afhaal_info)}` : ''}</p>`
     : `<p><strong>Leveren aan</strong><br>${esc(b.naam)}<br>${esc(b.adres_straat)}<br>${esc(b.adres_postcode)} ${esc(b.adres_gemeente)}</p>`;
@@ -79,24 +82,28 @@ export function mailKlant(b, regels, { bedrijf, levering }, siteUrl) {
   ].filter(Boolean).join(' · ') + `<br>Bederfelijke voeding: geen herroepingsrecht. <a href="${siteUrl}/voorwaarden" style="color:#4A5357">Algemene voorwaarden</a>`;
 
   const html = omhulsel(`Bedankt, ${voornaam}!`, `
-    <p>Je betaling is gelukt. Dit is je bestelling <strong>${esc(b.nummer)}</strong>:</p>
+    ${test ? TEST_BANNER : ''}
+    <p>${test ? 'Je testbestelling is ontvangen.' : 'Je betaling is gelukt.'} Dit is je bestelling <strong>${esc(b.nummer)}</strong>:</p>
     ${regelsTabel(b, regels)}
     ${plaats}
     <p>${b.levering === 'afhalen' ? 'We nemen contact met je op om een afhaalmoment af te spreken.' : 'We nemen contact met je op om een levermoment af te spreken. Je worsten komen diepgevroren aan: leg ze meteen in de diepvriezer.'}</p>
     <p>Vragen? Antwoord gewoon op deze mail${contact ? ` of contacteer ons via ${contact}` : ''}.</p>`, voet);
 
   const tekst = [
-    `Bedankt, ${voornaam}!`, '', `Je betaling is gelukt. Dit is je bestelling ${b.nummer}:`, '', regelsTekst(b, regels), '',
+    ...(test ? ['TESTBESTELLING: er werd niets betaald en er wordt niets geleverd.', ''] : []),
+    `Bedankt, ${voornaam}!`, '', `${test ? 'Je testbestelling is ontvangen.' : 'Je betaling is gelukt.'} Dit is je bestelling ${b.nummer}:`, '', regelsTekst(b, regels), '',
     b.levering === 'afhalen' ? `Afhalen: ${levering?.afhaal_adres || ''}` : `Leveren aan: ${b.adres_straat}, ${b.adres_postcode} ${b.adres_gemeente}`,
     '', b.levering === 'afhalen' ? 'We nemen contact met je op om een afhaalmoment af te spreken.' : 'We nemen contact met je op om een levermoment af te spreken. Je worsten komen diepgevroren aan.',
     '', 'Vragen? Antwoord gewoon op deze mail.', '', 'Dongo Worsten', `${siteUrl}/voorwaarden`,
   ].join('\n');
-  return { onderwerp: `Bedankt voor je bestelling ${b.nummer}`, html, tekst };
+  return { onderwerp: `${test ? '[TEST] ' : ''}Bedankt voor je bestelling ${b.nummer}`, html, tekst };
 }
 
 export function mailWinkel(b, regels, siteUrl) {
   const link = `${siteUrl}/beheer/#bestelling/${b.id}`;
+  const test = b.mollie_status === 'test';
   const html = omhulsel(`Nieuwe bestelling ${b.nummer}`, `
+    ${test ? TEST_BANNER : ''}
     <p><strong>${esc(b.naam)}</strong><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a><br><a href="tel:${esc(String(b.telefoon).replace(/[^0-9+]/g, ''))}">${esc(b.telefoon)}</a></p>
     <p><strong>${b.levering === 'afhalen' ? 'Komt afhalen' : 'Leveren aan'}</strong>${b.levering === 'leveren' ? `<br>${esc(b.adres_straat)}<br>${esc(b.adres_postcode)} ${esc(b.adres_gemeente)}` : ''}</p>
     ${b.opmerking ? `<p><strong>Opmerking</strong><br>${esc(b.opmerking)}</p>` : ''}
@@ -109,7 +116,7 @@ export function mailWinkel(b, regels, siteUrl) {
     b.levering === 'afhalen' ? 'Komt afhalen' : `Leveren aan: ${b.adres_straat}, ${b.adres_postcode} ${b.adres_gemeente}`,
     b.opmerking ? `\nOpmerking: ${b.opmerking}` : '', '', regelsTekst(b, regels), b.notitie ? `\nLet op: ${b.notitie}` : '', '', link,
   ].join('\n');
-  return { onderwerp: `Nieuwe bestelling ${b.nummer} – ${b.naam} – ${euro(b.totaal_cent)}`, html, tekst };
+  return { onderwerp: `${test ? '[TEST] ' : ''}Nieuwe bestelling ${b.nummer} – ${b.naam} – ${euro(b.totaal_cent)}`, html, tekst };
 }
 
 /**

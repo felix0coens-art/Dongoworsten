@@ -21,7 +21,7 @@ export const onRequestGet = ({ request, env }) =>
     }
     const { results } = await env.DB.prepare('SELECT naam, eenheid, prijs_cent, aantal FROM bestelregels WHERE bestelling_id = ?').bind(b.id).all();
     return json({
-      nummer: b.nummer, status: b.status, levering: b.levering, naam: b.naam,
+      nummer: b.nummer, status: b.status, levering: b.levering, naam: b.naam, test: b.mollie_status === 'test',
       subtotaal_cent: b.subtotaal_cent, leverkost_cent: b.leverkost_cent, totaal_cent: b.totaal_cent, regels: results,
     });
   });
