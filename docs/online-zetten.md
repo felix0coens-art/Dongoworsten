@@ -29,3 +29,8 @@ Zodra er een eigen domein is, beschermen we alleen nog `/beheer` en `/api/beheer
 
 ## Databasewijzigingen later
 Nieuwe bestanden in `migrations/` voeren we uit met `npx wrangler d1 migrations apply DB --remote`, of via de Console van D1.
+
+## Let op: build-sleutel niet verwijderen
+Cloudflare bouwt de site met een eigen API-sleutel ("dongoworsten build token", zie Worker → Settings → Builds → API token).
+Wordt die verwijderd of vernieuwd, dan mislukt elke build met "The build token selected for this build has been deleted or rolled".
+Oplossing: kies bij API token "Create new token", sla op en push opnieuw (Retry gebruikt de oude sleutel).
