@@ -19,6 +19,10 @@ migrations_dir = "migrations"
 binding = "FOTOS"
 bucket_name = "dongoworsten-fotos"
 
+# Elke nacht om 3 uur (UTC) oude bestellingen opruimen.
+[triggers]
+crons = ["0 3 * * *"]
+
 [observability]
 enabled = true
 

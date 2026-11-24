@@ -87,19 +87,21 @@ export function productKaart(p) {
   </article>`;
 }
 
-/** Tekst uit het beheer: blokken gescheiden door een lege regel. "# " of "## " = titel, "- " = opsomming. */
+/** Tekst uit het beheer. Per regel: "# " of "## " = titel, "- " = opsomming, andere regels = alinea.
+ *  Opeenvolgende gewone regels vormen één alinea; een lege regel begint een nieuwe. */
 export function tekstNaarHtml(t, { titel = 'h2' } = {}) {
-  return String(t || '').trim().split(/\n\s*\n/).map((blok) => {
-    blok = blok.trim();
-    if (/^#{1,3} /.test(blok)) {
-      const [eerste, ...rest] = blok.split('\n');
-      return `<${titel}>${esc(eerste.replace(/^#{1,3} /, ''))}</${titel}>${rest.length ? `<p>${esc(rest.join(' '))}</p>` : ''}`;
-    }
-    if (blok.split('\n').every((r) => r.trim().startsWith('- '))) {
-      return `<ul>${blok.split('\n').map((r) => `<li>${esc(r.trim().slice(2))}</li>`).join('')}</ul>`;
-    }
-    return `<p>${esc(blok).replace(/\n/g, '<br>')}</p>`;
-  }).join('');
+  let html = '', alinea = [], lijst = [];
+  const sluitAlinea = () => { if (alinea.length) { html += `<p>${alinea.map(esc).join('<br>')}</p>`; alinea = []; } };
+  const sluitLijst = () => { if (lijst.length) { html += `<ul>${lijst.map((r) => `<li>${esc(r)}</li>`).join('')}</ul>`; lijst = []; } };
+  for (const ruw of String(t || '').split('\n')) {
+    const r = ruw.trim();
+    if (!r) { sluitAlinea(); sluitLijst(); continue; }
+    if (/^#{1,3} /.test(r)) { sluitAlinea(); sluitLijst(); html += `<${titel}>${esc(r.replace(/^#{1,3} /, ''))}</${titel}>`; continue; }
+    if (r.startsWith('- ')) { sluitAlinea(); lijst.push(r.slice(2)); continue; }
+    sluitLijst(); alinea.push(r);
+  }
+  sluitAlinea(); sluitLijst();
+  return html;
 }
 
 // ---------- melding ----------

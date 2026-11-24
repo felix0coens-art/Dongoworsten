@@ -1,0 +1,45 @@
+Dongo Worsten gaat zorgvuldig om met je persoonsgegevens. In deze verklaring lees je welke gegevens we verzamelen, waarom, en welke rechten je hebt.
+
+# 1. Wie is verantwoordelijk
+Verantwoordelijk voor je gegevens is Coens, Victor, handelend onder de naam Dongo Worsten, ondernemingsnummer 1042.302.513. Onze contactgegevens staan onderaan elke pagina van de website.
+
+# 2. Welke gegevens we verzamelen
+Als je bestelt:
+- je naam, e-mailadres en telefoonnummer;
+- je leveradres (als je laat leveren);
+- je bestelling: welke producten, hoeveel, het bedrag en een eventuele opmerking;
+- de status van je betaling. Je bankgegevens of kaartnummer krijgen wij niet te zien: die verwerkt onze betaalpartner Mollie.
+
+Als je de website bezoekt, verwerkt onze hostingpartner technische gegevens zoals je IP-adres om de site veilig en bereikbaar te houden.
+
+# 3. Waarom we die gegevens gebruiken
+- Om je bestelling te verwerken, te betalen en te leveren of af te laten halen (uitvoering van de overeenkomst).
+- Om je te contacteren over je bestelling, bijvoorbeeld om een levermoment af te spreken (uitvoering van de overeenkomst).
+- Om onze boekhouding te voeren (wettelijke verplichting).
+- Om de website veilig te houden en misbruik te voorkomen (gerechtvaardigd belang).
+
+We sturen je geen reclame en verkopen je gegevens nooit aan anderen.
+
+# 4. Met wie we gegevens delen
+We werken met een paar partners die je gegevens alleen voor ons verwerken:
+- Cloudflare: hosting van de website en de database met bestellingen.
+- Mollie: verwerking van je betaling.
+- Google Fonts: het lettertype van de website wordt bij Google geladen, waarbij je IP-adres naar Google gaat.
+- Een e-maildienst: voor de bevestiging van je bestelling.
+Sommige van die partners kunnen gegevens buiten de Europese Unie verwerken. Dat gebeurt dan met de waarborgen die de privacywetgeving (AVG/GDPR) vraagt.
+
+# 5. Hoe lang we gegevens bewaren
+- Gegevens van je bestelling bewaren we zo lang als de boekhoud- en btw-wetgeving dat vereist, maximaal 10 jaar.
+- Een bestelling die nooit betaald werd, verwijderen we na een jaar.
+
+# 6. Cookies en opslag in je browser
+We gebruiken geen tracking- of reclamecookies en geen bezoekersstatistieken van derden.
+Je mandje en de gegevens die je invult tijdens het afrekenen worden bewaard in je eigen browser (lokale opslag), zodat ze niet verloren gaan als je de pagina herlaadt. Die gegevens komen pas bij ons terecht als je bestelt.
+
+# 7. Je rechten
+Je hebt het recht om je gegevens in te kijken, te laten verbeteren of te laten verwijderen, om je te verzetten tegen een verwerking en om je gegevens mee te nemen. Gegevens die we wettelijk moeten bewaren, kunnen we pas na afloop van die termijn verwijderen.
+Wil je een van die rechten gebruiken, neem dan contact met ons op via de gegevens onderaan de website. We antwoorden binnen een maand.
+Ben je niet tevreden over hoe we met je gegevens omgaan, dan kun je een klacht indienen bij de Gegevensbeschermingsautoriteit (www.gegevensbeschermingsautoriteit.be).
+
+# 8. Wijzigingen
+We kunnen deze privacyverklaring aanpassen. De meest recente versie staat altijd op deze pagina.

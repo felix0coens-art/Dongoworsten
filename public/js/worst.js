@@ -74,8 +74,9 @@ function render(p, winkel, anderen) {
       </div>
       <div>
         <h2>Allergenen</h2>
-        <ul class="allergens">${winkel.allergenen.map((a) => `<li class="${p.bevat.includes(a.sleutel) ? 'yes' : p.sporen.includes(a.sleutel) ? 'trace' : ''}">${esc(a.naam)}</li>`).join('')}</ul>
-        <div class="legend"><span><i></i>Bevat</span><span><i class="t"></i>Kan sporen bevatten</span></div>
+        ${p.bevat.length ? `<p><strong>Bevat:</strong></p><ul class="allergens">${p.bevat.map((k) => `<li class="yes">${esc(namen.get(k) || k)}</li>`).join('')}</ul>` : ''}
+        ${p.sporen.length ? `<p style="margin-top:12px"><strong>Kan sporen bevatten van:</strong></p><ul class="allergens">${p.sporen.map((k) => `<li class="trace">${esc(namen.get(k) || k)}</li>`).join('')}</ul>` : ''}
+        ${!p.bevat.length && !p.sporen.length ? '<p>Bevat geen van de 14 wettelijke allergenen.</p>' : ''}
       </div>
       ${p.bewaren ? `<div><h2>Bewaren</h2><p>${esc(p.bewaren)}</p></div>` : ''}
       ${stappen.length ? `<div><h2>Bereiden</h2><ol class="steps">${stappen.map((s) => `<li>${esc(s)}</li>`).join('')}</ol></div>` : ''}

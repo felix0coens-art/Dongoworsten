@@ -88,12 +88,27 @@ async function api(request, env, ctx, pad, data) {
   return fout(404, 'Niet gevonden.');
 }
 
+async function ruimOp(env) {
+  const oud = `aangemaakt < datetime('now', '-10 years') OR (status IN ('open', 'mislukt') AND aangemaakt < datetime('now', '-1 year'))`;
+  // Eerst de regels, dan de bestellingen zelf.
+  const r = await env.DB.batch([
+    env.DB.prepare(`DELETE FROM bestelregels WHERE bestelling_id IN (SELECT id FROM bestellingen WHERE ${oud})`),
+    env.DB.prepare(`DELETE FROM bestellingen WHERE ${oud}`),
+  ]);
+  console.log('Opruiming:', r.map((x) => x.meta.changes).join(' / '), 'bestellingen verwijderd');
+}
+
 // Als de extra zoekmachinegegevens niet lukken (bv. database even weg), toon dan gewoon de pagina.
 async function veiligSeo(fn, terugval) {
   try { return await fn(); } catch (e) { console.error('SEO:', e.message); return terugval(); }
 }
 
 export default {
+  // Elke nacht: oude bestellingen opruimen, zoals de privacyverklaring belooft.
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(ruimOp(env));
+  },
+
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     // www.dongoworsten.be -> dongoworsten.be (één adres voor de winkel)
