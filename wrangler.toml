@@ -7,7 +7,7 @@ compatibility_date = "2026-10-01"
 directory = "public"
 binding = "ASSETS"
 # Deze paden gaan eerst langs de Worker (login-controle, API, foto's); de rest serveert Cloudflare rechtstreeks.
-run_worker_first = ["/api/*", "/beheer", "/beheer/*", "/fotos/*", "/worst/*"]
+run_worker_first = ["/", "/index.html", "/api/*", "/beheer", "/beheer/*", "/fotos/*", "/worst/*", "/robots.txt", "/sitemap.xml", "/voorwaarden", "/privacy", "/mandje", "/bedankt"]
 
 [[d1_databases]]
 binding = "DB"
@@ -23,6 +23,8 @@ bucket_name = "dongoworsten-fotos"
 enabled = true
 
 [vars]
+# Het echte adres van de winkel (canonieke links, sitemap, doorsturen van workers.dev).
+SITE_URL = "https://dongoworsten.be"
 # Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die het beheer beschermt.
 ACCESS_TEAM_DOMAIN = "https://sparkling-mountain-a630.cloudflareaccess.com"
 ACCESS_AUD = "2320ccf60f49057e59d9d59168e06b0d1c527114b08f9c866fb6694cfea78447"

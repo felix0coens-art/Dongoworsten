@@ -2,6 +2,7 @@
 // Statische bestanden (public/) serveert Cloudflare zelf; alleen /api, /beheer en /fotos komen hier langs
 // (zie run_worker_first in wrangler.toml).
 import { fout } from './lib/http.js';
+import * as seo from './lib/seo.js';
 
 import * as beheerApiPoort from './routes/api/beheer/_middleware.js';
 import * as beheerPaginaPoort from './routes/beheer/_middleware.js';
@@ -87,6 +88,11 @@ async function api(request, env, ctx, pad, data) {
   return fout(404, 'Niet gevonden.');
 }
 
+// Als de extra zoekmachinegegevens niet lukken (bv. database even weg), toon dan gewoon de pagina.
+async function veiligSeo(fn, terugval) {
+  try { return await fn(); } catch (e) { console.error('SEO:', e.message); return terugval(); }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -97,6 +103,15 @@ export default {
     }
     const pad = url.pathname;
     const data = {};
+
+    // Het workers.dev-adres van de echte site stuurt door naar het eigen domein (geen dubbele site voor Google).
+    // Testversies (<versie>-dongoworsten....workers.dev) en de API blijven werken.
+    if (env.SITE_URL && url.hostname.endsWith('.workers.dev') && url.hostname.startsWith('dongoworsten.')
+        && ['GET', 'HEAD'].includes(request.method) && !pad.startsWith('/api/')) {
+      return Response.redirect(`${env.SITE_URL}${pad}${url.search}`, 301);
+    }
+    if (pad === '/robots.txt') return seo.robots(request, env);
+    if (pad === '/sitemap.xml') return veiligSeo(() => seo.sitemap(request, env), () => new Response('Niet beschikbaar', { status: 503 }));
 
     // Beheer-API: eerst de poort (login + herkomst), dan de route.
     if (pad === '/api/beheer' || pad.startsWith('/api/beheer/')) {
@@ -109,9 +124,34 @@ export default {
     if (pad.startsWith('/api/') || pad.startsWith('/fotos/')) return api(request, env, ctx, pad, data);
 
     // Productpagina's: /worst/<slug> toont altijd dezelfde pagina; die haalt het product zelf op.
-    if (/^\/worst\/[a-z0-9-]+\/?$/.test(pad)) {
+    // De server zet er wel titel, beschrijving, voorvertoning en productgegevens in.
+    const worst = pad.match(/^\/worst\/([a-z0-9-]+)\/?$/);
+    if (worst) {
       const pagina = await env.ASSETS.fetch(new Request(new URL('/worst', request.url), request));
-      return new Response(pagina.body, pagina);
+      const metSeo = await veiligSeo(() => seo.productpagina(request, env, pagina.clone(), worst[1]), () => pagina.clone());
+      if (metSeo) return metSeo;
+      // Product bestaat niet (meer): de pagina toont dat zelf, maar zoekmachines krijgen een 404.
+      const r = new Response(pagina.body, { status: 404, headers: pagina.headers });
+      r.headers.set('x-robots-tag', 'noindex');
+      return r;
+    }
+
+    if (pad === '/' || pad === '/index.html') {
+      const pagina = await env.ASSETS.fetch(request);
+      if (!pagina.ok) return pagina;
+      return veiligSeo(() => seo.startpagina(request, env, pagina.clone()), () => pagina);
+    }
+    const juridisch = { '/voorwaarden': ['Algemene voorwaarden · Dongo Worsten', 'De algemene voorwaarden van Dongo Worsten.'], '/privacy': ['Privacyverklaring · Dongo Worsten', 'Hoe Dongo Worsten met je gegevens omgaat.'] }[pad];
+    if (juridisch) {
+      const pagina = await env.ASSETS.fetch(request);
+      if (!pagina.ok) return pagina;
+      return seo.gewonePagina(request, env, pagina, { titel: juridisch[0], beschrijving: juridisch[1] });
+    }
+    if (pad === '/mandje' || pad === '/bedankt') {
+      const pagina = await env.ASSETS.fetch(request);
+      const r = new Response(pagina.body, pagina);
+      r.headers.set('x-robots-tag', 'noindex');
+      return r;
     }
 
     return env.ASSETS.fetch(request);
