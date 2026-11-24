@@ -24,7 +24,7 @@ enabled = true
 
 [vars]
 # Cloudflare Access: het teamdomein en de AUD-tag van de applicatie die het beheer beschermt.
-ACCESS_TEAM_DOMAIN = ""
+ACCESS_TEAM_DOMAIN = "https://sparkling-mountain-a630.cloudflareaccess.com"
 ACCESS_AUD = ""
 # BEHEER_EMAILS (wie mag het beheer gebruiken, komma-gescheiden) staat als geheim
 # in Cloudflare (Worker > Settings > Variables and Secrets), niet in de code.
