@@ -19,6 +19,11 @@ import * as mandje from './routes/api/mandje.js';
 import * as afrekenen from './routes/api/afrekenen.js';
 import * as mollieWebhook from './routes/api/mollie/webhook.js';
 import * as bestelling from './routes/api/bestelling.js';
+import * as factuur from './routes/api/factuur.js';
+import * as beheerFacturen from './routes/api/beheer/facturen/index.js';
+import * as beheerFactuurExport from './routes/api/beheer/facturen/export.js';
+import * as beheerFactuur from './routes/api/beheer/facturen/[id].js';
+import * as beheerFactuurPdf from './routes/api/beheer/facturen/[id]/pdf.js';
 import * as producten from './routes/api/producten/index.js';
 import * as product from './routes/api/producten/[slug].js';
 import * as winkel from './routes/api/winkel.js';
@@ -39,6 +44,11 @@ const ROUTES = [
   ['/api/afrekenen', afrekenen],
   ['/api/mollie/webhook', mollieWebhook],
   ['/api/bestelling', bestelling],
+  ['/api/factuur', factuur],
+  ['/api/beheer/facturen', beheerFacturen],
+  ['/api/beheer/facturen/export', beheerFactuurExport],
+  ['/api/beheer/facturen/:id', beheerFactuur],
+  ['/api/beheer/facturen/:id/pdf', beheerFactuurPdf],
   ['/api/producten', producten],
   ['/api/producten/:slug', product],
   ['/api/winkel', winkel],
@@ -92,10 +102,11 @@ async function ruimOp(env) {
   const oud = `aangemaakt < datetime('now', '-10 years') OR (status IN ('open', 'mislukt') AND aangemaakt < datetime('now', '-1 year'))`;
   // Eerst de regels, dan de bestellingen zelf.
   const r = await env.DB.batch([
+    env.DB.prepare(`DELETE FROM facturen WHERE bestelling_id IN (SELECT id FROM bestellingen WHERE ${oud})`),
     env.DB.prepare(`DELETE FROM bestelregels WHERE bestelling_id IN (SELECT id FROM bestellingen WHERE ${oud})`),
     env.DB.prepare(`DELETE FROM bestellingen WHERE ${oud}`),
   ]);
-  console.log('Opruiming:', r.map((x) => x.meta.changes).join(' / '), 'bestellingen verwijderd');
+  console.log('Opruiming: facturen / regels / bestellingen verwijderd:', r.map((x) => x.meta.changes).join(' / '));
 }
 
 // Als de extra zoekmachinegegevens niet lukken (bv. database even weg), toon dan gewoon de pagina.

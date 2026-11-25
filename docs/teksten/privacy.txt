@@ -7,6 +7,7 @@ Verantwoordelijk voor je gegevens is Coens, Victor, handelend onder de naam Dong
 Als je bestelt:
 - je naam, e-mailadres en telefoonnummer;
 - je leveradres (als je laat leveren);
+- als je als bedrijf bestelt: de bedrijfsnaam, het btw-nummer en het facturatieadres;
 - je bestelling: welke producten, hoeveel, het bedrag en een eventuele opmerking;
 - de status van je betaling. Je bankgegevens of kaartnummer krijgen wij niet te zien: die verwerkt onze betaalpartner Mollie.
 
@@ -15,7 +16,7 @@ Als je de website bezoekt, verwerkt onze hostingpartner technische gegevens zoal
 # 3. Waarom we die gegevens gebruiken
 - Om je bestelling te verwerken, te betalen en te leveren of af te laten halen (uitvoering van de overeenkomst).
 - Om je te contacteren over je bestelling, bijvoorbeeld om een levermoment af te spreken (uitvoering van de overeenkomst).
-- Om onze boekhouding te voeren (wettelijke verplichting).
+- Om een factuur op te maken en onze boekhouding te voeren (wettelijke verplichting).
 - Om de website veilig te houden en misbruik te voorkomen (gerechtvaardigd belang).
 
 We sturen je geen reclame en verkopen je gegevens nooit aan anderen.
@@ -24,8 +25,9 @@ We sturen je geen reclame en verkopen je gegevens nooit aan anderen.
 We werken met een paar partners die je gegevens alleen voor ons verwerken:
 - Cloudflare: hosting van de website en de database met bestellingen.
 - Mollie: verwerking van je betaling.
+- Accountable: onze boekhoudsoftware, voor facturen en het versturen van facturen aan bedrijven via Peppol.
 - Google Fonts: het lettertype van de website wordt bij Google geladen, waarbij je IP-adres naar Google gaat.
-- Een e-maildienst: voor de bevestiging van je bestelling.
+- Resend: het versturen van de bevestigingsmail van je bestelling.
 Sommige van die partners kunnen gegevens buiten de Europese Unie verwerken. Dat gebeurt dan met de waarborgen die de privacywetgeving (AVG/GDPR) vraagt.
 
 # 5. Hoe lang we gegevens bewaren

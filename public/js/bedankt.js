@@ -31,7 +31,9 @@ async function kijk() {
     doel.innerHTML = `<p class="eyebrow">Bestelling ${esc(d.nummer)}</p><h1>Bedankt, ${voornaam}!</h1>
       ${d.test ? '<p class="foutblok">Dit was een testbestelling: er werd niets betaald en er wordt niets geleverd.</p>' : ''}
       <p class="lead">${d.test ? 'Je testbestelling is ontvangen.' : 'Je betaling is gelukt.'} ${d.levering === 'afhalen' ? 'We nemen contact op om een afhaalmoment af te spreken.' : 'We nemen contact op om een levermoment af te spreken. Je worsten komen diepgevroren aan.'}</p>
-      ${overzicht(d)}<a class="btn ghost" href="/">Terug naar de winkel</a>`;
+      ${overzicht(d)}
+      ${d.factuur ? (d.bedrijf ? `<p>Je factuur ${esc(d.factuur)} op naam van ${esc(d.bedrijf)} ontvang je via Peppol.</p>` : `<p><a class="link-arrow" href="/api/factuur?b=${encodeURIComponent(b)}&c=${encodeURIComponent(c)}" target="_blank" rel="noopener">Download je factuur ${esc(d.factuur)} (PDF)</a></p>`) : ''}
+      <a class="btn ghost" href="/">Terug naar de winkel</a>`;
   } else if (d.status === 'open') {
     pogingen++;
     doel.innerHTML = `<p class="eyebrow">Bestelling ${esc(d.nummer)}</p><h1>Even geduld…</h1>

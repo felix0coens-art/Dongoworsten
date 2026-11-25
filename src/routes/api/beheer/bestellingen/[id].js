@@ -22,7 +22,8 @@ export const onRequestGet = ({ params, env }) =>
     if (!b) return fout(404, 'Bestelling niet gevonden.');
     const { results } = await env.DB.prepare('SELECT naam, eenheid, prijs_cent, aantal FROM bestelregels WHERE bestelling_id = ?').bind(b.id).all();
     const { toegangscode, ...rest } = b;
-    return json({ bestelling: { ...rest, regels: results, mag_naar: MAG_NAAR[b.status] || [] } });
+    const factuur = await env.DB.prepare('SELECT id, nummer, peppol_verstuurd FROM facturen WHERE bestelling_id = ?').bind(b.id).first();
+    return json({ bestelling: { ...rest, regels: results, factuur, mag_naar: MAG_NAAR[b.status] || [] } });
   });
 
 export const onRequestPatch = ({ params, request, env }) =>

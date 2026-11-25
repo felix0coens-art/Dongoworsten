@@ -20,8 +20,9 @@ export const onRequestGet = ({ request, env }) =>
       try { b = (await verwerkBetaling(env, request.url, b.mollie_id)) || b; } catch (e) { console.error(e.message); }
     }
     const { results } = await env.DB.prepare('SELECT naam, eenheid, prijs_cent, aantal FROM bestelregels WHERE bestelling_id = ?').bind(b.id).all();
+    const f = await env.DB.prepare('SELECT nummer FROM facturen WHERE bestelling_id = ?').bind(b.id).first();
     return json({
-      nummer: b.nummer, status: b.status, levering: b.levering, naam: b.naam, test: b.mollie_status === 'test',
+      nummer: b.nummer, status: b.status, levering: b.levering, naam: b.naam, test: b.mollie_status === 'test', factuur: f?.nummer || null, bedrijf: b.bedrijf_naam || null,
       subtotaal_cent: b.subtotaal_cent, leverkost_cent: b.leverkost_cent, totaal_cent: b.totaal_cent, regels: results,
     });
   });

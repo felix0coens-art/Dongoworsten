@@ -68,9 +68,22 @@ function omhulsel(titel, inhoud, voet) {
 </td></tr></table></body></html>`;
 }
 
+function factuurLink(b, siteUrl) {
+  return `${siteUrl}/api/factuur?b=${encodeURIComponent(b.nummer)}&c=${encodeURIComponent(b.toegangscode || '')}`;
+}
+function factuurAlinea(b, siteUrl, factuur) {
+  if (!factuur) return '';
+  if (b.bedrijf_naam) return `<p>Je factuur ${esc(factuur.nummer)} op naam van ${esc(b.bedrijf_naam)} ontvang je via Peppol.</p>`;
+  return `<p><a href="${factuurLink(b, siteUrl)}" style="color:#141615;font-weight:700">Download je factuur ${esc(factuur.nummer)} (PDF)</a></p>`;
+}
+function factuurTekst(b, siteUrl, factuur) {
+  if (!factuur) return '';
+  return b.bedrijf_naam ? `Je factuur ${factuur.nummer} ontvang je via Peppol.` : `Je factuur ${factuur.nummer}: ${factuurLink(b, siteUrl)}`;
+}
+
 const TEST_BANNER = '<p style="background:#FBE3E9;border:2px dashed #E95D7C;border-radius:8px;padding:8px 12px;font-weight:700">TESTBESTELLING: er werd niets betaald en er wordt niets geleverd.</p>';
 
-export function mailKlant(b, regels, { bedrijf, levering }, siteUrl) {
+export function mailKlant(b, regels, { bedrijf, levering }, siteUrl, factuur = null) {
   const voornaam = String(b.naam).split(' ')[0];
   const test = b.mollie_status === 'test';
   const plaats = b.levering === 'afhalen'
@@ -87,6 +100,7 @@ export function mailKlant(b, regels, { bedrijf, levering }, siteUrl) {
     ${regelsTabel(b, regels)}
     ${plaats}
     <p>${b.levering === 'afhalen' ? 'We nemen contact met je op om een afhaalmoment af te spreken.' : 'We nemen contact met je op om een levermoment af te spreken. Je worsten komen diepgevroren aan: leg ze meteen in de diepvriezer.'}</p>
+    ${factuurAlinea(b, siteUrl, factuur)}
     <p>Vragen? Antwoord gewoon op deze mail${contact ? ` of contacteer ons via ${contact}` : ''}.</p>`, voet);
 
   const tekst = [
@@ -94,17 +108,18 @@ export function mailKlant(b, regels, { bedrijf, levering }, siteUrl) {
     `Bedankt, ${voornaam}!`, '', `${test ? 'Je testbestelling is ontvangen.' : 'Je betaling is gelukt.'} Dit is je bestelling ${b.nummer}:`, '', regelsTekst(b, regels), '',
     b.levering === 'afhalen' ? `Afhalen: ${levering?.afhaal_adres || ''}` : `Leveren aan: ${b.adres_straat}, ${b.adres_postcode} ${b.adres_gemeente}`,
     '', b.levering === 'afhalen' ? 'We nemen contact met je op om een afhaalmoment af te spreken.' : 'We nemen contact met je op om een levermoment af te spreken. Je worsten komen diepgevroren aan.',
-    '', 'Vragen? Antwoord gewoon op deze mail.', '', 'Dongo Worsten', `${siteUrl}/voorwaarden`,
+    '', factuurTekst(b, siteUrl, factuur), '', 'Vragen? Antwoord gewoon op deze mail.', '', 'Dongo Worsten', `${siteUrl}/voorwaarden`,
   ].join('\n');
   return { onderwerp: `${test ? '[TEST] ' : ''}Bedankt voor je bestelling ${b.nummer}`, html, tekst };
 }
 
-export function mailWinkel(b, regels, siteUrl) {
+export function mailWinkel(b, regels, siteUrl, factuur = null) {
   const link = `${siteUrl}/beheer/#bestelling/${b.id}`;
   const test = b.mollie_status === 'test';
   const html = omhulsel(`Nieuwe bestelling ${b.nummer}`, `
     ${test ? TEST_BANNER : ''}
     <p><strong>${esc(b.naam)}</strong><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a><br><a href="tel:${esc(String(b.telefoon).replace(/[^0-9+]/g, ''))}">${esc(b.telefoon)}</a></p>
+    ${b.bedrijf_naam ? `<p style="background:#D9EBF2;padding:8px 12px;border-radius:8px"><strong>Bestelling van een bedrijf:</strong> ${esc(b.bedrijf_naam)}, btw ${esc(b.bedrijf_btw)}.<br>Factuur ${esc(factuur?.nummer || '')}: importeer de PDF in Accountable (Omzet → Factuur importeren) en verstuur ze via Peppol. Vink daarna in het beheer "via Peppol verstuurd" aan.</p>` : ''}
     <p><strong>${b.levering === 'afhalen' ? 'Komt afhalen' : 'Leveren aan'}</strong>${b.levering === 'leveren' ? `<br>${esc(b.adres_straat)}<br>${esc(b.adres_postcode)} ${esc(b.adres_gemeente)}` : ''}</p>
     ${b.opmerking ? `<p><strong>Opmerking</strong><br>${esc(b.opmerking)}</p>` : ''}
     ${regelsTabel(b, regels)}
@@ -130,11 +145,12 @@ export async function verstuurBestelmails(env, eigenUrl, b, siteUrl) {
   const { results: regels } = await env.DB.prepare('SELECT naam, eenheid, prijs_cent, aantal FROM bestelregels WHERE bestelling_id = ?').bind(b.id).all();
   const inst = await leesInstellingen(env.DB, ['bedrijf', 'levering']);
   const winkelAdres = inst.bedrijf?.email;
+  const factuur = await env.DB.prepare('SELECT nummer FROM facturen WHERE bestelling_id = ?').bind(b.id).first();
 
-  const klant = mailKlant(b, regels, inst, siteUrl);
+  const klant = mailKlant(b, regels, inst, siteUrl, factuur);
   await verstuur(env, eigenUrl, { naar: b.email, ...klant, antwoordAan: winkelAdres, sleutel: `bestelling-${b.id}-klant` });
   if (winkelAdres) {
-    const winkel = mailWinkel(b, regels, siteUrl);
+    const winkel = mailWinkel(b, regels, siteUrl, factuur);
     await verstuur(env, eigenUrl, { naar: winkelAdres, ...winkel, antwoordAan: b.email, sleutel: `bestelling-${b.id}-winkel` });
   }
   await env.DB.prepare('UPDATE bestellingen SET mails_verstuurd = 1 WHERE id = ?').bind(b.id).run();

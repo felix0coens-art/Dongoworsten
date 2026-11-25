@@ -411,6 +411,8 @@ async function toonBestelling(id) {
         <div><strong>${esc(b.naam)}</strong><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a><br><a href="tel:${esc(b.telefoon.replace(/[^0-9+]/g, ''))}">${esc(b.telefoon)}</a></div>
         <div><strong>${b.levering === 'afhalen' ? 'Afhalen' : 'Leveren aan'}</strong>${b.levering === 'leveren' ? `<br>${esc(b.adres_straat)}<br>${esc(b.adres_postcode)} ${esc(b.adres_gemeente)}` : ''}</div>
         ${b.opmerking ? `<div><strong>Opmerking van de klant</strong><br>${esc(b.opmerking)}</div>` : ''}
+        ${b.bedrijf_naam ? `<div><strong>Bedrijf</strong><br>${esc(b.bedrijf_naam)}<br>Btw ${esc(b.bedrijf_btw)}<br>${esc(b.bedrijf_straat)}<br>${esc(b.bedrijf_postcode)} ${esc(b.bedrijf_gemeente)}</div>` : ''}
+        ${b.factuur ? `<div><strong>Factuur</strong><br><a href="/api/beheer/facturen/${b.factuur.id}/pdf" target="_blank" rel="noopener">${esc(b.factuur.nummer)} (PDF)</a>${b.bedrijf_naam ? `<br>${b.factuur.peppol_verstuurd ? 'Via Peppol verstuurd' : '<strong>Nog via Peppol versturen</strong> (Accountable)'}` : ''}</div>` : ''}
       </fieldset>
       <fieldset><legend>Bestelling</legend>
         <div class="tabel" style="border:0"><table>
@@ -426,7 +428,7 @@ async function toonBestelling(id) {
         <div style="display:flex;gap:10px;flex-wrap:wrap" id="statusknoppen">
           ${b.mag_naar.map((s) => `<button type="button" class="btn ${s === 'geannuleerd' ? 'gevaar' : s === 'betaald' ? 'wit' : ''}" data-naar="${s}">${esc(KNOP[s] || s)}</button>`).join('')}
         </div>
-        ${b.mag_naar.includes('geannuleerd') && b.status !== 'open' ? '<span class="hulp">Annuleren betaalt niet automatisch terug. Dat doe je in je Mollie-dashboard.</span>' : ''}
+        ${b.mag_naar.includes('geannuleerd') && b.status !== 'open' ? `<span class="hulp">Annuleren betaalt niet automatisch terug. Dat doe je in je Mollie-dashboard.${b.factuur ? ' Er is al een factuur: maak in Accountable een creditnota.' : ''}</span>` : ''}
       </fieldset>
     </form>
     ${bewaarBalk('Notitie bewaren')}`;
@@ -450,6 +452,53 @@ async function toonBestelling(id) {
   });
 }
 
+// =========================== FACTUREN ===========================
+async function toonFacturen(maand = new Date().toISOString().slice(0, 7), test = false) {
+  const { facturen } = await api(`/api/beheer/facturen?maand=${maand}${test ? '&test=1' : ''}`);
+  const som = (k) => facturen.reduce((s, f) => s + f[k], 0);
+  const openPeppol = facturen.filter((f) => f.b2b && !f.peppol_verstuurd).length;
+  app.innerHTML = `
+    <div class="kop"><h1>Facturen</h1>
+      <p>Elke betaalde bestelling krijgt automatisch een factuur (reeks W). Download per maand de export en laad die op in Accountable.
+      Facturen aan bedrijven importeer je in Accountable en verstuur je daar via Peppol.</p></div>
+    <div class="filters" style="align-items:center">
+      <input type="month" id="v-maand" value="${esc(maand)}" style="font:inherit;border:2px solid var(--ink);border-radius:999px;padding:4px 12px">
+      <button type="button" data-test="0" aria-pressed="${!test}">Echte facturen</button>
+      <button type="button" data-test="1" aria-pressed="${test}">Testfacturen</button>
+      ${!test && facturen.length ? `<button type="button" class="btn klein" id="export" style="margin-left:auto">Export ${esc(maand)} (ZIP)</button>` : ''}
+    </div>
+    ${openPeppol ? `<p class="hulp" style="margin-bottom:12px"><strong>${openPeppol}</strong> factuur/facturen aan bedrijven nog via Peppol te versturen.</p>` : ''}
+    ${facturen.length ? `<div class="tabel"><table>
+      <thead><tr><th>Nummer</th><th>Datum</th><th>Klant</th><th>Bestelling</th><th class="getal">Zonder btw</th><th class="getal">Btw</th><th class="getal">Totaal</th><th>Peppol</th></tr></thead>
+      <tbody>${facturen.map((f) => `<tr>
+        <td><a href="/api/beheer/facturen/${f.id}/pdf" target="_blank" rel="noopener">${esc(f.nummer)}</a></td>
+        <td>${esc(f.datum)}</td><td>${esc(f.klant)}${f.b2b ? ' <span class="label aan">bedrijf</span>' : ''}</td>
+        <td><a href="#bestelling/${f.bestelling_id}">${esc(f.bestelnummer)}</a></td>
+        <td class="getal">${euro(f.maatstaf_cent)}</td><td class="getal">${euro(f.btw_cent)}</td><td class="getal">${euro(f.totaal_cent)}</td>
+        <td>${f.b2b ? `<label class="schakel"><input type="checkbox" data-peppol="${f.id}" ${f.peppol_verstuurd ? 'checked' : ''}><span>${f.peppol_verstuurd ? 'verstuurd' : 'nog doen'}</span></label>` : '–'}</td></tr>`).join('')}
+      <tr><td colspan="4"><strong>Totaal ${esc(maand)}</strong></td><td class="getal"><strong>${euro(som('maatstaf_cent'))}</strong></td><td class="getal"><strong>${euro(som('btw_cent'))}</strong></td><td class="getal"><strong>${euro(som('totaal_cent'))}</strong></td><td></td></tr>
+      </tbody></table></div>`
+    : `<div class="leeg"><strong>Geen ${test ? 'testfacturen' : 'facturen'} in ${esc(maand)}.</strong></div>`}`;
+
+  document.getElementById('v-maand').addEventListener('change', (e) => { if (/^\d{4}-\d{2}$/.test(e.target.value)) toonFacturen(e.target.value, test); });
+  app.querySelectorAll('[data-test]').forEach((k) => k.addEventListener('click', () => toonFacturen(maand, k.dataset.test === '1')));
+  app.querySelectorAll('[data-peppol]').forEach((v) => v.addEventListener('change', async () => {
+    try { await api(`/api/beheer/facturen/${v.dataset.peppol}`, { methode: 'PATCH', body: { peppol_verstuurd: v.checked } }); melding('Bewaard'); toonFacturen(maand, test); }
+    catch (err) { melding(err.bericht, true); v.checked = !v.checked; }
+  }));
+  document.getElementById('export')?.addEventListener('click', async (e) => {
+    const knop = e.currentTarget; knop.disabled = true; knop.textContent = 'Even geduld…';
+    try {
+      const res = await fetch(`/api/beheer/facturen/export?maand=${maand}`);
+      if (!res.ok) throw { bericht: (await res.json().catch(() => ({}))).fout || 'Export mislukt.' };
+      const url = URL.createObjectURL(await res.blob());
+      const a = Object.assign(document.createElement('a'), { href: url, download: `dongo-facturen-${maand}.zip` });
+      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+    } catch (err) { melding(err.bericht || 'Export mislukt.', true); }
+    finally { knop.disabled = false; knop.textContent = `Export ${maand} (ZIP)`; }
+  });
+}
+
 // =========================== NAVIGATIE ===========================
 let vorigeHash = location.hash;
 async function route() {
@@ -469,6 +518,7 @@ async function route() {
     if (tab === 'product' && id) await toonProduct(id);
     else if (tab === 'bestellingen') await toonBestellingen();
     else if (tab === 'bestelling' && id) await toonBestelling(id);
+    else if (tab === 'facturen') await toonFacturen();
     else if (tab === 'levering') await toonInstelling('levering');
     else if (tab === 'teksten') await toonInstelling('teksten');
     else if (tab === 'onderneming') await toonInstelling('bedrijf');

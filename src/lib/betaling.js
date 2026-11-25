@@ -2,6 +2,7 @@
 // (als de webhook nog niet binnen is). Mag dus veilig meerdere keren draaien.
 import { haalBetaling, centNaarMollie } from './mollie.js';
 import { verstuurBestelmails } from './mail.js';
+import { maakFactuur } from './factuur.js';
 
 const MISLUKT = ['canceled', 'expired', 'failed'];
 
@@ -30,6 +31,8 @@ export async function verwerkBetaling(env, eigenUrl, betaalId) {
     await env.DB.prepare("UPDATE bestellingen SET status = 'mislukt' WHERE id = ? AND status = 'open'").bind(b.id).run();
   }
   const nu = await env.DB.prepare('SELECT * FROM bestellingen WHERE id = ?').bind(b.id).first();
+  // Betaald? Dan de factuur maken (gebeurt maar één keer).
+  if (nu && ['betaald', 'klaargezet', 'geleverd'].includes(nu.status)) await maakFactuur(env, nu);
   // Betaald en nog geen mails? Dan nu versturen. Mislukt dat, dan gooit dit een fout en
   // antwoordt de webhook met 500, zodat Mollie het later opnieuw probeert.
   if (nu && !nu.mails_verstuurd && ['betaald', 'klaargezet', 'geleverd'].includes(nu.status)) {

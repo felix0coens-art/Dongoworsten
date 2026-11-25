@@ -15,7 +15,7 @@ We kunnen prijzen op elk moment aanpassen. Voor jouw bestelling geldt de prijs d
 
 # 4. Bestellen en betalen
 Je bestelt via de webwinkel en betaalt online via onze betaalpartner Mollie, met Bancontact of een betaalkaart.
-Je bestelling is definitief zodra de betaling gelukt is. Is een product na je betaling toch niet meer beschikbaar, dan laten we je dat zo snel mogelijk weten en betalen we dat deel binnen 14 dagen terug.
+Je bestelling is definitief zodra de betaling gelukt is. Je krijgt een bevestiging per e-mail, met je factuur. Bestel je als bedrijf, dan vul je de bedrijfsnaam, het btw-nummer en het facturatieadres in en ontvang je de factuur via Peppol. Is een product na je betaling toch niet meer beschikbaar, dan laten we je dat zo snel mogelijk weten en betalen we dat deel binnen 14 dagen terug.
 
 # 5. Levering en afhalen
 Onze producten worden diepgevroren geleverd. Na je bestelling nemen we contact met je op om een moment af te spreken.

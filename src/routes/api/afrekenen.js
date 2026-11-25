@@ -5,6 +5,7 @@ import { productenVoorMandje, leveringInstelling } from '../../lib/winkeldata.js
 import { maakBetaling } from '../../lib/mollie.js';
 import { testmodus, verlaagVoorraad } from '../../lib/betaling.js';
 import { verstuurBestelmails } from '../../lib/mail.js';
+import { maakFactuur } from '../../lib/factuur.js';
 
 function code() {
   const b = new Uint8Array(16);
@@ -32,11 +33,13 @@ export const onRequestPost = ({ request, env }) =>
     const toegangscode = code();
     const nieuw = await env.DB.prepare(
       `INSERT INTO bestellingen (nummer, status, levering, naam, email, telefoon, adres_straat, adres_postcode, adres_gemeente,
-         opmerking, subtotaal_cent, leverkost_cent, totaal_cent, toegangscode)
-       VALUES (?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+         opmerking, subtotaal_cent, leverkost_cent, totaal_cent, toegangscode,
+         bedrijf_naam, bedrijf_btw, bedrijf_straat, bedrijf_postcode, bedrijf_gemeente)
+       VALUES (?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
     ).bind(`tijdelijk-${toegangscode}`, r.levering, klant.naam, klant.email, klant.telefoon,
       klant.straat || null, klant.postcode || null, klant.gemeente || null, klant.opmerking,
-      r.subtotaal_cent, r.leverkost_cent, r.totaal_cent, toegangscode).first();
+      r.subtotaal_cent, r.leverkost_cent, r.totaal_cent, toegangscode,
+      klant.bedrijf_naam, klant.bedrijf_btw, klant.bedrijf_straat, klant.bedrijf_postcode, klant.bedrijf_gemeente).first();
     const nummer = bestelnummer(nieuw.id);
     await env.DB.batch([
       env.DB.prepare('UPDATE bestellingen SET nummer = ? WHERE id = ?').bind(nummer, nieuw.id),
@@ -52,6 +55,7 @@ export const onRequestPost = ({ request, env }) =>
         .bind(nieuw.id).run();
       await verlaagVoorraad(env, nieuw.id);
       const b = await env.DB.prepare('SELECT * FROM bestellingen WHERE id = ?').bind(nieuw.id).first();
+      try { await maakFactuur(env, b); } catch (e) { console.error('Testfactuur niet gemaakt:', e.message); }
       const site = (env.SITE_URL || eigen.origin).replace(/\/$/, '');
       try { await verstuurBestelmails(env, request.url, b, site); } catch (e) { console.error('Testmail niet verstuurd:', e.message); }
       return json({ nummer, betaalUrl: bedankt, test: true });

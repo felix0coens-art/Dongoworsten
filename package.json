@@ -12,5 +12,9 @@
   },
   "devDependencies": {
     "wrangler": "4.156.2"
+  },
+  "dependencies": {
+    "fflate": "0.8.2",
+    "pdf-lib": "1.17.1"
   }
 }

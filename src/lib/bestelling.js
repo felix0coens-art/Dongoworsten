@@ -2,6 +2,7 @@
 // Alles hier gebeurt op de server, met de prijzen uit de database. Wat de browser stuurt,
 // is alleen: welk product, hoeveel, en de gegevens van de klant.
 import { Ongeldig } from './http.js';
+import { normaliseerBtw } from './factuur.js';
 
 export const MAX_REGELS = 30;
 export const MAX_AANTAL = 50;
@@ -106,6 +107,22 @@ export function controleerKlant(k, levering) {
     uit.straat = ''; uit.postcode = ''; uit.gemeente = '';
   }
   if (uit.opmerking.length > 500) f.opmerking = 'Maximaal 500 tekens.';
+
+  // Bestellen als bedrijf: factuur op bedrijfsnaam, met btw-nummer en facturatieadres.
+  uit.bedrijf_naam = ''; uit.bedrijf_btw = ''; uit.bedrijf_straat = ''; uit.bedrijf_postcode = ''; uit.bedrijf_gemeente = '';
+  if (k?.bedrijf === true) {
+    uit.bedrijf_naam = tekst(k.bedrijf_naam, 120);
+    uit.bedrijf_straat = tekst(k.bedrijf_straat, 150);
+    uit.bedrijf_postcode = tekst(k.bedrijf_postcode, 4);
+    uit.bedrijf_gemeente = tekst(k.bedrijf_gemeente, 80);
+    if (uit.bedrijf_naam.length < 2 || uit.bedrijf_naam.length > 120) f.bedrijf_naam = 'Vul de naam van het bedrijf in.';
+    const btw = normaliseerBtw(k.bedrijf_btw);
+    if (!btw) f.bedrijf_btw = 'Vul een geldig Belgisch btw-nummer in, bv. BE 0123.456.789.';
+    else uit.bedrijf_btw = btw;
+    if (uit.bedrijf_straat.length < 3 || uit.bedrijf_straat.length > 150) f.bedrijf_straat = 'Vul straat en huisnummer van het bedrijf in.';
+    if (!/^[1-9]\d{3}$/.test(uit.bedrijf_postcode)) f.bedrijf_postcode = 'Vul een Belgische postcode in (4 cijfers).';
+    if (uit.bedrijf_gemeente.length < 2 || uit.bedrijf_gemeente.length > 80) f.bedrijf_gemeente = 'Vul de gemeente in.';
+  }
   if (k?.akkoord !== true) f.akkoord = 'Ga akkoord met de algemene voorwaarden om te bestellen.';
   if (Object.keys(f).length) throw new Ongeldig(f);
   return uit;

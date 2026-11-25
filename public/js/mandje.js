@@ -87,6 +87,17 @@ function render() {
             ${veld('gemeente', 'Gemeente', `<input type="text" name="gemeente" id="v-gemeente" autocomplete="address-level2" maxlength="80" value="${esc(c.gemeente)}">`)}
           </div>
           ${berekening.problemen.postcode ? `<p class="foutblok">${esc(berekening.problemen.postcode)}</p>` : ''}` : ''}
+        <label class="vink"><input type="checkbox" name="bedrijf" id="v-bedrijf" ${c.bedrijf ? 'checked' : ''}><span>Ik bestel als bedrijf (factuur op bedrijfsnaam, via Peppol)</span></label>
+        ${c.bedrijf ? `
+          ${veld('bedrijf_naam', 'Bedrijfsnaam', `<input type="text" name="bedrijf_naam" id="v-bedrijf-naam" autocomplete="organization" maxlength="120" value="${esc(c.bedrijf_naam)}">`)}
+          ${veld('bedrijf_btw', 'Btw-nummer', `<input type="text" name="bedrijf_btw" id="v-bedrijf-btw" maxlength="20" placeholder="BE 0123.456.789" value="${esc(c.bedrijf_btw)}">`)}
+          ${wijze === 'leveren' ? `<label class="vink"><input type="checkbox" name="zelfde_adres" id="v-zelfde-adres" ${c.zelfde_adres !== false ? 'checked' : ''}><span>Facturatieadres is hetzelfde als het leveradres</span></label>` : ''}
+          ${wijze === 'afhalen' || c.zelfde_adres === false ? `
+            ${veld('bedrijf_straat', 'Facturatieadres: straat en huisnummer', `<input type="text" name="bedrijf_straat" id="v-bedrijf-straat" maxlength="150" value="${esc(c.bedrijf_straat)}">`)}
+            <div class="velden2">
+              ${veld('bedrijf_postcode', 'Postcode', `<input type="text" name="bedrijf_postcode" id="v-bedrijf-postcode" inputmode="numeric" maxlength="4" value="${esc(c.bedrijf_postcode)}">`)}
+              ${veld('bedrijf_gemeente', 'Gemeente', `<input type="text" name="bedrijf_gemeente" id="v-bedrijf-gemeente" maxlength="80" value="${esc(c.bedrijf_gemeente)}">`)}
+            </div>` : ''}` : ''}
         ${veld('opmerking', 'Opmerking <span class="hulp">(niet verplicht)</span>', `<textarea name="opmerking" id="v-opmerking" maxlength="500">${esc(c.opmerking)}</textarea>`)}
       </div>
     </div>
@@ -115,8 +126,12 @@ function render() {
 }
 
 function leesFormulier(form) {
-  const d = Object.fromEntries(['naam', 'email', 'telefoon', 'straat', 'postcode', 'gemeente', 'opmerking'].map((k) => [k, form[k]?.value ?? concept.lees()[k] ?? '']));
+  const vorig = concept.lees();
+  const d = Object.fromEntries(['naam', 'email', 'telefoon', 'straat', 'postcode', 'gemeente', 'opmerking', 'bedrijf_naam', 'bedrijf_btw', 'bedrijf_straat', 'bedrijf_postcode', 'bedrijf_gemeente']
+    .map((k) => [k, form[k]?.value ?? vorig[k] ?? '']));
   d.akkoord = !!form.akkoord?.checked;
+  d.bedrijf = !!form.bedrijf?.checked;
+  d.zelfde_adres = form.zelfde_adres ? form.zelfde_adres.checked : (vorig.zelfde_adres ?? true);
   return d;
 }
 
@@ -191,6 +206,7 @@ kassa.addEventListener('change', (e) => {
     return herreken({ direct: true });
   }
   if (t.name === 'postcode') return herreken();
+  if (t.name === 'bedrijf' || t.name === 'zelfde_adres') { concept.bewaar({ ...concept.lees(), ...leesFormulier(t.form) }); return herreken({ direct: true }); }
   if (t.form) concept.bewaar({ ...concept.lees(), ...leesFormulier(t.form) });
 });
 
@@ -198,6 +214,10 @@ kassa.addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
   const klant = leesFormulier(form);
+  // Facturatieadres = leveradres? Dan nemen we het leveradres over.
+  if (klant.bedrijf && form.levering?.value === 'leveren' && klant.zelfde_adres) {
+    klant.bedrijf_straat = klant.straat; klant.bedrijf_postcode = klant.postcode; klant.bedrijf_gemeente = klant.gemeente;
+  }
   concept.bewaar({ ...klant, levering: form.levering?.value });
   if (!form.levering?.value) return toonFouten({ levering: 'Kies leveren of afhalen.' });
 
