@@ -11,16 +11,14 @@ export function splitsBtw(totaalCent, procent) {
   return { maatstaf_cent: maatstaf, btw_cent: totaalCent - maatstaf };
 }
 
-/** Belgisch btw-nummer: BE + 10 cijfers, beginnend met 0 of 1, met geldige controle (mod 97). Geeft "BE0123456789" of null. */
+/** Belgisch btw-nummer: BE + 10 cijfers, beginnend met 0 of 1. Geeft "BE0123456789" of null.
+ *  Bewust geen controle op het controlegetal: een tikfout valt op bij het versturen via Peppol,
+ *  en een klant mag niet geblokkeerd worden door een te strenge controle. */
 export function normaliseerBtw(invoer) {
   const s = String(invoer || '').toUpperCase().replace(/[\s.\-]/g, '');
   const m = s.match(/^(BE)?([01]\d{9})$/);
   if (!m) return null;
-  const cijfers = m[2];
-  const basis = Number(cijfers.slice(0, 8));
-  const controle = Number(cijfers.slice(8));
-  if (97 - (basis % 97) !== controle) return null;
-  return `BE${cijfers}`;
+  return `BE${m[2]}`;
 }
 
 export const toonBtw = (btw) => (btw && /^BE\d{10}$/.test(btw) ? `BE ${btw.slice(2, 6)}.${btw.slice(6, 9)}.${btw.slice(9)}` : btw || '');

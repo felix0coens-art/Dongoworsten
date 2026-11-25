@@ -16,7 +16,8 @@ test('Belgisch btw-nummer: vormen en controlegetal', () => {
   assert.equal(normaliseerBtw('BE 1042.302.513'), 'BE1042302513');
   assert.equal(normaliseerBtw('be1042302513'), 'BE1042302513');
   assert.equal(normaliseerBtw('1042.302.513'), 'BE1042302513');
-  assert.equal(normaliseerBtw('BE 1042.302.514'), null);   // fout controlegetal
+  assert.equal(normaliseerBtw('BE 1007.354.611.'), 'BE1007354611'); // punt achteraan, geen controlegetal-check
+  assert.equal(normaliseerBtw('BE 1042.302.51'), null);    // te kort
   assert.equal(normaliseerBtw('BE 2042.302.513'), null);   // moet met 0 of 1 beginnen
   assert.equal(normaliseerBtw('NL123456789B01'), null);
   assert.equal(toonBtw('BE1042302513'), 'BE 1042.302.513');
@@ -25,7 +26,7 @@ test('Belgisch btw-nummer: vormen en controlegetal', () => {
 test('bestellen als bedrijf: velden verplicht en btw gecontroleerd', () => {
   const basis = { naam: 'An Peeters', email: 'an@voorbeeld.be', telefoon: '0470 12 34 56', straat: 'Kerkstraat 1', postcode: '9000', gemeente: 'Gent', akkoord: true };
   assert.equal(controleerKlant(basis, 'leveren').bedrijf_naam, '');
-  try { controleerKlant({ ...basis, bedrijf: true, bedrijf_btw: 'BE 1042.302.514' }, 'leveren'); assert.fail(); }
+  try { controleerKlant({ ...basis, bedrijf: true, bedrijf_btw: 'BE 1042.302' }, 'leveren'); assert.fail(); }
   catch (e) { assert.ok(e instanceof Ongeldig); assert.ok(e.velden.bedrijf_naam && e.velden.bedrijf_btw && e.velden.bedrijf_straat); }
   const k = controleerKlant({ ...basis, bedrijf: true, bedrijf_naam: 'Slagerij Peeters', bedrijf_btw: 'BE 1042.302.513', bedrijf_straat: 'Markt 2', bedrijf_postcode: '8000', bedrijf_gemeente: 'Brugge' }, 'leveren');
   assert.equal(k.bedrijf_btw, 'BE1042302513');
