@@ -2,6 +2,14 @@
 // Verstuurd via Resend (RESEND_API_KEY als geheim in Cloudflare). Zonder sleutel wordt er niets verstuurd.
 // RESEND_API_BASE is alleen voor lokaal testen met de nagebootste dienst en werkt niet buiten localhost.
 import { leesInstellingen } from './db.js';
+import { factuurPdf } from './factuur.js';
+
+// PDF (Uint8Array) naar base64 voor een bijlage, in stukken om grote bestanden aan te kunnen.
+function base64(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const euro = (cent) => '€ ' + (cent / 100).toFixed(2).replace('.', ',');
@@ -11,7 +19,7 @@ function basis(env, eigenUrl) {
   return lokaal && env.RESEND_API_BASE ? env.RESEND_API_BASE : 'https://api.resend.com';
 }
 
-async function verstuur(env, eigenUrl, { naar, onderwerp, html, tekst, antwoordAan, sleutel }) {
+async function verstuur(env, eigenUrl, { naar, onderwerp, html, tekst, antwoordAan, sleutel, bijlagen }) {
   const res = await fetch(`${basis(env, eigenUrl)}/emails`, {
     method: 'POST',
     headers: {
@@ -27,6 +35,7 @@ async function verstuur(env, eigenUrl, { naar, onderwerp, html, tekst, antwoordA
       html,
       text: tekst,
       ...(antwoordAan ? { reply_to: antwoordAan } : {}),
+      ...(bijlagen?.length ? { attachments: bijlagen } : {}),
     }),
   });
   if (!res.ok) {
@@ -73,12 +82,12 @@ function factuurLink(b, siteUrl) {
 }
 function factuurAlinea(b, siteUrl, factuur) {
   if (!factuur) return '';
-  if (b.bedrijf_naam) return `<p>Je factuur ${esc(factuur.nummer)} op naam van ${esc(b.bedrijf_naam)} ontvang je via Peppol.</p>`;
-  return `<p><a href="${factuurLink(b, siteUrl)}" style="color:#141615;font-weight:700">Download je factuur ${esc(factuur.nummer)} (PDF)</a></p>`;
+  if (b.bedrijf_naam) return `<p>Je factuur ${esc(factuur.nummer)} op naam van ${esc(b.bedrijf_naam)} zit als PDF in de bijlage. De elektronische factuur ontvang je ook via Peppol.</p>`;
+  return `<p>Je factuur ${esc(factuur.nummer)} zit als PDF in de bijlage. Je kunt ze ook <a href="${factuurLink(b, siteUrl)}" style="color:#141615;font-weight:700">hier downloaden</a>.</p>`;
 }
 function factuurTekst(b, siteUrl, factuur) {
   if (!factuur) return '';
-  return b.bedrijf_naam ? `Je factuur ${factuur.nummer} ontvang je via Peppol.` : `Je factuur ${factuur.nummer}: ${factuurLink(b, siteUrl)}`;
+  return b.bedrijf_naam ? `Je factuur ${factuur.nummer} op naam van ${b.bedrijf_naam} zit als PDF in de bijlage. De elektronische factuur ontvang je ook via Peppol.` : `Je factuur ${factuur.nummer} zit als PDF in de bijlage. Downloaden kan ook: ${factuurLink(b, siteUrl)}`;
 }
 
 const TEST_BANNER = '<p style="background:#FBE3E9;border:2px dashed #E95D7C;border-radius:8px;padding:8px 12px;font-weight:700">TESTBESTELLING: er werd niets betaald en er wordt niets geleverd.</p>';
@@ -119,7 +128,7 @@ export function mailWinkel(b, regels, siteUrl, factuur = null) {
   const html = omhulsel(`Nieuwe bestelling ${b.nummer}`, `
     ${test ? TEST_BANNER : ''}
     <p><strong>${esc(b.naam)}</strong><br><a href="mailto:${esc(b.email)}">${esc(b.email)}</a><br><a href="tel:${esc(String(b.telefoon).replace(/[^0-9+]/g, ''))}">${esc(b.telefoon)}</a></p>
-    ${b.bedrijf_naam ? `<p style="background:#D9EBF2;padding:8px 12px;border-radius:8px"><strong>Bestelling van een bedrijf:</strong> ${esc(b.bedrijf_naam)}, btw ${esc(b.bedrijf_btw)}.<br>Factuur ${esc(factuur?.nummer || '')}: importeer de PDF in Accountable (Omzet → Factuur importeren) en verstuur ze via Peppol. Vink daarna in het beheer "via Peppol verstuurd" aan.</p>` : ''}
+    ${b.bedrijf_naam ? `<p style="background:#D9EBF2;padding:8px 12px;border-radius:8px"><strong>Bestelling van een bedrijf:</strong> ${esc(b.bedrijf_naam)}, btw ${esc(b.bedrijf_btw)}.<br>Factuur ${esc(factuur?.nummer || '')} zit in de bijlage: importeer de PDF in Accountable (Omzet → Factuur importeren) en verstuur ze via Peppol. Vink daarna in het beheer "via Peppol verstuurd" aan.</p>` : ''}
     <p><strong>${b.levering === 'afhalen' ? 'Komt afhalen' : 'Leveren aan'}</strong>${b.levering === 'leveren' ? `<br>${esc(b.adres_straat)}<br>${esc(b.adres_postcode)} ${esc(b.adres_gemeente)}` : ''}</p>
     ${b.opmerking ? `<p><strong>Opmerking</strong><br>${esc(b.opmerking)}</p>` : ''}
     ${regelsTabel(b, regels)}
@@ -145,13 +154,15 @@ export async function verstuurBestelmails(env, eigenUrl, b, siteUrl) {
   const { results: regels } = await env.DB.prepare('SELECT naam, eenheid, prijs_cent, aantal FROM bestelregels WHERE bestelling_id = ?').bind(b.id).all();
   const inst = await leesInstellingen(env.DB, ['bedrijf', 'levering']);
   const winkelAdres = inst.bedrijf?.email;
-  const factuur = await env.DB.prepare('SELECT nummer FROM facturen WHERE bestelling_id = ?').bind(b.id).first();
+  const factuur = await env.DB.prepare('SELECT * FROM facturen WHERE bestelling_id = ?').bind(b.id).first();
+  const pdf = factuur ? [{ filename: `factuur-${factuur.nummer}.pdf`, content: base64(await factuurPdf(factuur)) }] : [];
 
   const klant = mailKlant(b, regels, inst, siteUrl, factuur);
-  await verstuur(env, eigenUrl, { naar: b.email, ...klant, antwoordAan: winkelAdres, sleutel: `bestelling-${b.id}-klant` });
+  // Iedereen krijgt de factuur als PDF in de bijlage; bedrijven ontvangen ze daarnaast via Peppol.
+  await verstuur(env, eigenUrl, { naar: b.email, ...klant, antwoordAan: winkelAdres, sleutel: `bestelling-${b.id}-klant`, bijlagen: pdf });
   if (winkelAdres) {
     const winkel = mailWinkel(b, regels, siteUrl, factuur);
-    await verstuur(env, eigenUrl, { naar: winkelAdres, ...winkel, antwoordAan: b.email, sleutel: `bestelling-${b.id}-winkel` });
+    await verstuur(env, eigenUrl, { naar: winkelAdres, ...winkel, antwoordAan: b.email, sleutel: `bestelling-${b.id}-winkel`, bijlagen: pdf });
   }
   await env.DB.prepare('UPDATE bestellingen SET mails_verstuurd = 1 WHERE id = ?').bind(b.id).run();
   return true;

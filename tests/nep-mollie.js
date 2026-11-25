@@ -23,7 +23,8 @@ http.createServer(async (req, res) => {
     if (sleutel && verstuurd.has(sleutel)) return stuur(res, 200, { id: verstuurd.get(sleutel) });
     const id = 'mail_' + Math.random().toString(36).slice(2, 10);
     if (sleutel) verstuurd.set(sleutel, id);
-    console.log('MAIL', JSON.stringify({ van: m.from, naar: m.to, onderwerp: m.subject, antwoordAan: m.reply_to }));
+    console.log('MAIL', JSON.stringify({ van: m.from, naar: m.to, onderwerp: m.subject, antwoordAan: m.reply_to, bijlagen: (m.attachments || []).map((a) => `${a.filename} (${Math.round(a.content.length * 0.75 / 1024)} kB)`) }));
+    if (process.env.POST_MAP) for (const a of m.attachments || []) (await import('node:fs')).writeFileSync(`${process.env.POST_MAP}/${id}-${a.filename}`, Buffer.from(a.content, 'base64'));
     if (process.env.POST_MAP) (await import('node:fs')).writeFileSync(`${process.env.POST_MAP}/${id}.html`, m.html);
     return stuur(res, 200, { id });
   }
